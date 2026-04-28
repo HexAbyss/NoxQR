@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      NOXQR_BACKEND_ADDR: 0.0.0.0:3001
+    ports:
+      - "${NOXQR_BACKEND_PORT:-3081}:3001"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_QR_API_URL: ${NEXT_PUBLIC_QR_API_URL:-http://localhost:3081}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_QR_API_URL: ${NEXT_PUBLIC_QR_API_URL:-http://localhost:3081}
+    ports:
+      - "${NOXQR_FRONTEND_PORT:-3080}:3000"

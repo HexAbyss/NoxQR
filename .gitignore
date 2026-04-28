@@ -1,0 +1,9 @@
+frontend/.next/
+frontend/node_modules/
+frontend/.env.local
+backend/target/
+/.env
+/push.sh
+pendências.md
+capture-readme-screenshots.mjs
+capture-readme-screenshots.sh

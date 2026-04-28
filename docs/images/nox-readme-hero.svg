@@ -1,0 +1,202 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="900" fill="#060A10"/>
+  <g opacity="0.95" filter="url(#blur)">
+    <circle cx="196" cy="168" r="214" fill="#00E5C2" fill-opacity="0.18"/>
+    <circle cx="1344" cy="192" r="240" fill="#7C4DFF" fill-opacity="0.18"/>
+    <circle cx="1048" cy="772" r="260" fill="#00C7FF" fill-opacity="0.12"/>
+  </g>
+  <g opacity="0.28">
+    <path d="M0 142H1600" stroke="url(#gridH)"/>
+    <path d="M0 308H1600" stroke="url(#gridH)"/>
+    <path d="M0 474H1600" stroke="url(#gridH)"/>
+    <path d="M0 640H1600" stroke="url(#gridH)"/>
+    <path d="M204 0V900" stroke="url(#gridV)"/>
+    <path d="M486 0V900" stroke="url(#gridV)"/>
+    <path d="M768 0V900" stroke="url(#gridV)"/>
+    <path d="M1050 0V900" stroke="url(#gridV)"/>
+    <path d="M1332 0V900" stroke="url(#gridV)"/>
+  </g>
+  <rect x="48" y="48" width="1504" height="804" rx="42" fill="url(#shell)" stroke="#1B2633"/>
+
+  <g>
+    <rect x="100" y="106" width="164" height="40" rx="20" fill="#0F171F" stroke="#1F2D39"/>
+    <text x="132" y="132" fill="#00FFAA" font-size="15" font-family="Manrope, Arial, sans-serif" font-weight="800" letter-spacing="3.8">AGPL-3.0-ONLY</text>
+
+    <text x="100" y="204" fill="#A6B8CC" font-size="18" font-family="Manrope, Arial, sans-serif" font-weight="800" letter-spacing="6">VISUAL ENCODING ENGINE</text>
+
+    <g transform="translate(100 240)">
+      <path d="M0 114L38 0L71.44 109.44L141.36 -4.56" stroke="url(#markStroke)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M74.48 0L139.84 59.28" stroke="url(#markStrokeAlt)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <text x="258" y="318" fill="#F7FBFF" font-size="86" font-family="Outfit, Arial, sans-serif" font-weight="800" letter-spacing="-4">NOX</text>
+    <text x="100" y="408" fill="#F7FBFF" font-size="94" font-family="Outfit, Arial, sans-serif" font-weight="800" letter-spacing="-5">Art-directed QR</text>
+    <text x="100" y="492" fill="#C4D1DF" font-size="28" font-family="Manrope, Arial, sans-serif" font-weight="500">Open-source studio for visual QR systems with a Next.js surface, dependable Rust rendering,</text>
+    <text x="100" y="532" fill="#C4D1DF" font-size="28" font-family="Manrope, Arial, sans-serif" font-weight="500">transparent or solid canvases, responsive controls, and direct PNG handoff.</text>
+
+    <rect x="100" y="592" width="236" height="54" rx="27" fill="url(#chipGradient)"/>
+    <text x="144" y="626" fill="#041015" font-size="18" font-family="Manrope, Arial, sans-serif" font-weight="800">Rust render core</text>
+
+    <rect x="352" y="592" width="218" height="54" rx="27" fill="#111921" stroke="#223242"/>
+    <text x="405" y="626" fill="#D9E3EE" font-size="18" font-family="Manrope, Arial, sans-serif" font-weight="700">SVG + PNG output</text>
+
+    <rect x="100" y="668" width="194" height="46" rx="23" fill="#101820" stroke="#1F2E3D"/>
+    <text x="132" y="697" fill="#C6D3E4" font-size="16" font-family="Manrope, Arial, sans-serif" font-weight="700">Square / Dots / Lines</text>
+
+    <rect x="308" y="668" width="210" height="46" rx="23" fill="#101820" stroke="#1F2E3D"/>
+    <text x="343" y="697" fill="#C6D3E4" font-size="16" font-family="Manrope, Arial, sans-serif" font-weight="700">PT-BR + EN toggles</text>
+
+    <rect x="532" y="668" width="206" height="46" rx="23" fill="#101820" stroke="#1F2E3D"/>
+    <text x="569" y="697" fill="#C6D3E4" font-size="16" font-family="Manrope, Arial, sans-serif" font-weight="700">Dark and light themes</text>
+
+    <text x="100" y="774" fill="#8FA1B6" font-size="16" font-family="Manrope, Arial, sans-serif" font-weight="600">All documentation assets in this repository are regenerated from the running product surface.</text>
+  </g>
+
+  <g transform="translate(900 122) rotate(-4 270 284)">
+    <rect width="548" height="568" rx="38" fill="#0C1218" stroke="#1B2833"/>
+    <rect x="28" y="28" width="492" height="118" rx="28" fill="#0F171E" stroke="#1D2B36"/>
+    <rect x="56" y="58" width="56" height="56" rx="18" fill="#0C1218" stroke="#20303D"/>
+    <g transform="translate(68 68) scale(0.24)">
+      <path d="M36 204L86 54L130 198L222 48" stroke="url(#panelMarkDark)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M134 54L220 132" stroke="url(#panelMarkDarkAlt)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="132" y="89" fill="#F8FBFF" font-size="44" font-family="Outfit, Arial, sans-serif" font-weight="800" letter-spacing="-2">NOX</text>
+    <text x="132" y="118" fill="#A9B9CB" font-size="14" font-family="Manrope, Arial, sans-serif" font-weight="700" letter-spacing="3.2">VISUAL ENCODING ENGINE</text>
+    <rect x="382" y="54" width="110" height="34" rx="17" fill="#142029" stroke="#22323F"/>
+    <rect x="382" y="94" width="110" height="34" rx="17" fill="#142029" stroke="#22323F"/>
+    <rect x="386" y="58" width="56" height="26" rx="13" fill="url(#chipGradient)"/>
+    <rect x="386" y="98" width="56" height="26" rx="13" fill="#8F8DFF"/>
+    <text x="400" y="76" fill="#051015" font-size="11" font-family="Manrope, Arial, sans-serif" font-weight="800">PT-BR</text>
+    <text x="453" y="76" fill="#9FB1C4" font-size="11" font-family="Manrope, Arial, sans-serif" font-weight="700">EN</text>
+    <text x="399" y="116" fill="#FFFFFF" font-size="11" font-family="Manrope, Arial, sans-serif" font-weight="800">Dark</text>
+    <text x="453" y="116" fill="#9FB1C4" font-size="11" font-family="Manrope, Arial, sans-serif" font-weight="700">Light</text>
+
+    <rect x="28" y="174" width="230" height="366" rx="30" fill="#0F171E" stroke="#1E2C37"/>
+    <rect x="288" y="174" width="232" height="366" rx="30" fill="#0F171E" stroke="#1E2C37"/>
+    <text x="54" y="214" fill="#00FFAA" font-size="12" font-family="Manrope, Arial, sans-serif" font-weight="800" letter-spacing="3.4">CONTROLS</text>
+    <text x="54" y="250" fill="#F8FBFF" font-size="31" font-family="Outfit, Arial, sans-serif" font-weight="700">Shape the signal.</text>
+    <rect x="54" y="282" width="178" height="88" rx="18" fill="#111C24" stroke="#243544"/>
+    <rect x="54" y="388" width="178" height="78" rx="18" fill="url(#cardBlend)" stroke="#1DD7B1" stroke-opacity="0.45"/>
+    <rect x="54" y="482" width="84" height="34" rx="17" fill="#0E161C" stroke="#20303D"/>
+    <rect x="148" y="482" width="84" height="34" rx="17" fill="#0E161C" stroke="#20303D"/>
+    <circle cx="88" cy="499" r="15" fill="#00FFAA"/>
+    <circle cx="182" cy="499" r="15" fill="#111111" stroke="#24313C"/>
+
+    <text x="314" y="214" fill="#00FFAA" font-size="12" font-family="Manrope, Arial, sans-serif" font-weight="800" letter-spacing="3.4">PREVIEW</text>
+    <text x="314" y="250" fill="#F8FBFF" font-size="31" font-family="Outfit, Arial, sans-serif" font-weight="700">Readable SVG output.</text>
+    <rect x="314" y="282" width="180" height="62" rx="18" fill="#111C24" stroke="#243544"/>
+    <rect x="314" y="360" width="180" height="132" rx="22" fill="url(#previewGlowDark)" stroke="#243544"/>
+    <g opacity="0.8">
+      <rect x="344" y="390" width="26" height="26" rx="2" stroke="#00FFAA" stroke-width="10"/>
+      <rect x="438" y="390" width="26" height="26" rx="2" stroke="#00FFAA" stroke-width="10"/>
+      <rect x="344" y="454" width="26" height="26" rx="2" stroke="#00FFAA" stroke-width="10"/>
+      <circle cx="390" cy="403" r="5" fill="#00FFAA"/>
+      <circle cx="404" cy="403" r="5" fill="#00FFAA"/>
+      <circle cx="390" cy="417" r="5" fill="#00FFAA"/>
+      <circle cx="404" cy="431" r="5" fill="#00FFAA"/>
+      <circle cx="418" cy="417" r="5" fill="#00FFAA"/>
+      <circle cx="418" cy="445" r="5" fill="#00FFAA"/>
+      <circle cx="446" cy="431" r="5" fill="#00FFAA"/>
+      <circle cx="432" cy="459" r="5" fill="#00FFAA"/>
+      <circle cx="460" cy="459" r="5" fill="#00FFAA"/>
+    </g>
+    <rect x="314" y="504" width="108" height="26" rx="13" fill="#101820" stroke="#22303E"/>
+    <rect x="428" y="504" width="66" height="26" rx="13" fill="#101820" stroke="#22303E"/>
+  </g>
+
+  <g transform="translate(1128 228) rotate(6 188 214)">
+    <rect width="376" height="428" rx="34" fill="#F5F9FC" stroke="#DAE4EE"/>
+    <rect x="22" y="22" width="332" height="92" rx="24" fill="#FFFFFF" stroke="#E1E9F0"/>
+    <rect x="44" y="42" width="48" height="48" rx="15" fill="#F4F7FA" stroke="#D4DFEA"/>
+    <g transform="translate(54 50) scale(0.18)">
+      <path d="M36 204L86 54L130 198L222 48" stroke="#141B24" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M134 54L220 132" stroke="#141B24" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="106" y="67" fill="#10161E" font-size="34" font-family="Outfit, Arial, sans-serif" font-weight="800" letter-spacing="-1.5">NOX</text>
+    <text x="106" y="89" fill="#697B8E" font-size="11" font-family="Manrope, Arial, sans-serif" font-weight="800" letter-spacing="2.8">VISUAL ENCODING ENGINE</text>
+    <rect x="234" y="36" width="94" height="28" rx="14" fill="#EEF4F8" stroke="#D9E3EC"/>
+    <rect x="234" y="70" width="94" height="28" rx="14" fill="#EEF4F8" stroke="#D9E3EC"/>
+    <rect x="238" y="40" width="46" height="20" rx="10" fill="#00EDC4"/>
+    <rect x="238" y="74" width="46" height="20" rx="10" fill="#9EA0FF"/>
+    <text x="250" y="54" fill="#071015" font-size="9" font-family="Manrope, Arial, sans-serif" font-weight="800">PT-BR</text>
+    <text x="291" y="54" fill="#6B7D90" font-size="9" font-family="Manrope, Arial, sans-serif" font-weight="700">EN</text>
+    <text x="249" y="88" fill="#FFFFFF" font-size="9" font-family="Manrope, Arial, sans-serif" font-weight="800">Dark</text>
+    <text x="291" y="88" fill="#6B7D90" font-size="9" font-family="Manrope, Arial, sans-serif" font-weight="700">Light</text>
+
+    <rect x="22" y="136" width="332" height="270" rx="26" fill="#FAFCFE" stroke="#E1E8EF"/>
+    <text x="46" y="172" fill="#0FD3A9" font-size="11" font-family="Manrope, Arial, sans-serif" font-weight="800" letter-spacing="3.2">PREVIEW</text>
+    <text x="46" y="206" fill="#141B24" font-size="28" font-family="Outfit, Arial, sans-serif" font-weight="700">Light theme handoff.</text>
+    <rect x="46" y="226" width="284" height="142" rx="22" fill="url(#previewGlowLight)" stroke="#D6E0EA"/>
+    <g opacity="0.92">
+      <rect x="76" y="254" width="28" height="28" rx="3" stroke="#00E7BE" stroke-width="8"/>
+      <rect x="272" y="254" width="28" height="28" rx="3" stroke="#00E7BE" stroke-width="8"/>
+      <rect x="76" y="320" width="28" height="28" rx="3" stroke="#00E7BE" stroke-width="8"/>
+      <circle cx="132" cy="268" r="5" fill="#00E7BE"/>
+      <circle cx="146" cy="268" r="5" fill="#00E7BE"/>
+      <circle cx="160" cy="268" r="5" fill="#00E7BE"/>
+      <circle cx="132" cy="282" r="5" fill="#00E7BE"/>
+      <circle cx="174" cy="282" r="5" fill="#00E7BE"/>
+      <circle cx="146" cy="296" r="5" fill="#00E7BE"/>
+      <circle cx="160" cy="310" r="5" fill="#00E7BE"/>
+      <circle cx="202" cy="296" r="5" fill="#00E7BE"/>
+      <circle cx="216" cy="310" r="5" fill="#00E7BE"/>
+      <circle cx="230" cy="282" r="5" fill="#00E7BE"/>
+      <circle cx="244" cy="296" r="5" fill="#00E7BE"/>
+    </g>
+    <rect x="46" y="382" width="148" height="16" rx="8" fill="#E8EFF5"/>
+    <rect x="204" y="382" width="126" height="16" rx="8" fill="#E8EFF5"/>
+  </g>
+
+  <defs>
+    <filter id="blur" x="-204" y="-212" width="1862" height="1296" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="98"/>
+    </filter>
+    <linearGradient id="shell" x1="124" y1="102" x2="1468" y2="816" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0E141B"/>
+      <stop offset="1" stop-color="#0A0F15"/>
+    </linearGradient>
+    <linearGradient id="gridH" x1="0" y1="0" x2="1600" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00E5C2" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#00E5C2" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#7C4DFF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="gridV" x1="0" y1="0" x2="0" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7C4DFF" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#00E5C2" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#7C4DFF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="markStroke" x1="0" y1="0" x2="141" y2="114" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7FBFF"/>
+      <stop offset="1" stop-color="#C7D7E8"/>
+    </linearGradient>
+    <linearGradient id="markStrokeAlt" x1="74" y1="0" x2="140" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7FBFF"/>
+      <stop offset="1" stop-color="#C7D7E8"/>
+    </linearGradient>
+    <linearGradient id="chipGradient" x1="100" y1="592" x2="336" y2="646" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00F5D1"/>
+      <stop offset="0.56" stop-color="#00E0FF"/>
+      <stop offset="1" stop-color="#A8FFE7"/>
+    </linearGradient>
+    <linearGradient id="panelMarkDark" x1="36" y1="48" x2="222" y2="204" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7FBFF"/>
+      <stop offset="1" stop-color="#D2DCE8"/>
+    </linearGradient>
+    <linearGradient id="panelMarkDarkAlt" x1="134" y1="54" x2="220" y2="132" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7FBFF"/>
+      <stop offset="1" stop-color="#D2DCE8"/>
+    </linearGradient>
+    <linearGradient id="cardBlend" x1="54" y1="388" x2="232" y2="466" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#123335"/>
+      <stop offset="1" stop-color="#2A2247"/>
+    </linearGradient>
+    <linearGradient id="previewGlowDark" x1="314" y1="360" x2="494" y2="492" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#173335"/>
+      <stop offset="1" stop-color="#2B2344"/>
+    </linearGradient>
+    <linearGradient id="previewGlowLight" x1="46" y1="226" x2="330" y2="368" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E6FFFA"/>
+      <stop offset="1" stop-color="#F2EBFF"/>
+    </linearGradient>
+  </defs>
+</svg>

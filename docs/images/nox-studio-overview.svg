@@ -1,0 +1,122 @@
+<svg width="1600" height="980" viewBox="0 0 1600 980" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="980" fill="#050A0F"/>
+  <g opacity="0.9" filter="url(#blur)">
+    <circle cx="180" cy="162" r="172" fill="#00EAC4" fill-opacity="0.16"/>
+    <circle cx="1420" cy="184" r="212" fill="#8758FF" fill-opacity="0.16"/>
+    <circle cx="1110" cy="826" r="250" fill="#00BFFF" fill-opacity="0.12"/>
+  </g>
+  <rect x="48" y="48" width="1504" height="884" rx="40" fill="url(#surface)" stroke="#1B2632"/>
+
+  <text x="100" y="134" fill="#00FFAA" font-size="17" font-family="Manrope, Arial, sans-serif" font-weight="800" letter-spacing="4">RESPONSIVE SURFACE MAP</text>
+  <text x="100" y="214" fill="#F7FBFF" font-size="68" font-family="Outfit, Arial, sans-serif" font-weight="800" letter-spacing="-3">One product surface, four viewport behaviors.</text>
+  <text x="100" y="272" fill="#C3D0DE" font-size="26" font-family="Manrope, Arial, sans-serif" font-weight="500">Desktop keeps the hero balanced. Tablet ranges progressively compress the mark, copy, and toggles.</text>
+  <text x="100" y="308" fill="#C3D0DE" font-size="26" font-family="Manrope, Arial, sans-serif" font-weight="500">Mobile reduces the header to three clean rows while the rest of the studio remains legible.</text>
+
+  <g>
+    <rect x="100" y="360" width="320" height="384" rx="30" fill="#0E151C" stroke="#1F2C37"/>
+    <text x="132" y="402" fill="#F7FBFF" font-size="28" font-family="Outfit, Arial, sans-serif" font-weight="700">Desktop</text>
+    <text x="132" y="432" fill="#93A6BA" font-size="15" font-family="Manrope, Arial, sans-serif" font-weight="700">≥ 1121px</text>
+    <rect x="132" y="462" width="256" height="108" rx="24" fill="#101920" stroke="#22313D"/>
+    <rect x="154" y="486" width="38" height="38" rx="12" fill="#0D131A" stroke="#22313D"/>
+    <g transform="translate(160 491) scale(0.12)">
+      <path d="M36 204L86 54L130 198L222 48" stroke="#F7FBFF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M134 54L220 132" stroke="#F7FBFF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="204" y="503" fill="#F7FBFF" font-size="27" font-family="Outfit, Arial, sans-serif" font-weight="800">NOX</text>
+    <rect x="300" y="478" width="66" height="26" rx="13" fill="#152028" stroke="#23313D"/>
+    <rect x="300" y="512" width="66" height="26" rx="13" fill="#152028" stroke="#23313D"/>
+    <rect x="304" y="482" width="30" height="18" rx="9" fill="#00FFAA"/>
+    <rect x="304" y="516" width="30" height="18" rx="9" fill="#9392FF"/>
+    <text x="132" y="616" fill="#C3D0DE" font-size="18" font-family="Manrope, Arial, sans-serif" font-weight="600">Brand and controls coexist on a single row.</text>
+    <rect x="132" y="648" width="84" height="24" rx="12" fill="#101820" stroke="#22313D"/>
+    <text x="155" y="664" fill="#C6D4E3" font-size="12" font-family="Manrope, Arial, sans-serif" font-weight="700">Dark</text>
+    <rect x="226" y="648" width="84" height="24" rx="12" fill="#F4F8FB" stroke="#DCE6EF"/>
+    <text x="251" y="664" fill="#18202B" font-size="12" font-family="Manrope, Arial, sans-serif" font-weight="700">Light</text>
+  </g>
+
+  <g>
+    <rect x="440" y="360" width="320" height="384" rx="30" fill="#0E151C" stroke="#1F2C37"/>
+    <text x="472" y="402" fill="#F7FBFF" font-size="28" font-family="Outfit, Arial, sans-serif" font-weight="700">Tablet Wide</text>
+    <text x="472" y="432" fill="#93A6BA" font-size="15" font-family="Manrope, Arial, sans-serif" font-weight="700">721px to 1120px</text>
+    <rect x="472" y="462" width="256" height="138" rx="24" fill="#101920" stroke="#22313D"/>
+    <rect x="494" y="486" width="38" height="38" rx="12" fill="#0D131A" stroke="#22313D"/>
+    <g transform="translate(500 491) scale(0.12)">
+      <path d="M36 204L86 54L130 198L222 48" stroke="#F7FBFF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M134 54L220 132" stroke="#F7FBFF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="544" y="503" fill="#F7FBFF" font-size="27" font-family="Outfit, Arial, sans-serif" font-weight="800">NOX</text>
+    <rect x="494" y="546" width="98" height="24" rx="12" fill="#152028" stroke="#23313D"/>
+    <rect x="602" y="546" width="98" height="24" rx="12" fill="#152028" stroke="#23313D"/>
+    <rect x="498" y="550" width="44" height="16" rx="8" fill="#00FFAA"/>
+    <rect x="606" y="550" width="44" height="16" rx="8" fill="#9392FF"/>
+    <text x="472" y="632" fill="#C3D0DE" font-size="18" font-family="Manrope, Arial, sans-serif" font-weight="600">Controls move below the brand and stay aligned side by side.</text>
+    <rect x="472" y="664" width="114" height="24" rx="12" fill="#101820" stroke="#22313D"/>
+    <text x="496" y="680" fill="#C6D4E3" font-size="12" font-family="Manrope, Arial, sans-serif" font-weight="700">More breathing room</text>
+  </g>
+
+  <g>
+    <rect x="780" y="360" width="320" height="384" rx="30" fill="#0E151C" stroke="#1F2C37"/>
+    <text x="812" y="402" fill="#F7FBFF" font-size="28" font-family="Outfit, Arial, sans-serif" font-weight="700">Tablet Compact</text>
+    <text x="812" y="432" fill="#93A6BA" font-size="15" font-family="Manrope, Arial, sans-serif" font-weight="700">561px to 720px</text>
+    <rect x="812" y="462" width="256" height="154" rx="24" fill="#F6FAFC" stroke="#DCE5EE"/>
+    <rect x="834" y="486" width="38" height="38" rx="12" fill="#F2F6FA" stroke="#D8E2EC"/>
+    <g transform="translate(840 491) scale(0.12)">
+      <path d="M36 204L86 54L130 198L222 48" stroke="#161D26" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M134 54L220 132" stroke="#161D26" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="884" y="503" fill="#141B24" font-size="27" font-family="Outfit, Arial, sans-serif" font-weight="800">NOX</text>
+    <rect x="954" y="486" width="90" height="34" rx="17" fill="#EDF3F7" stroke="#D7E1EB"/>
+    <text x="966" y="508" fill="#617486" font-size="11" font-family="Manrope, Arial, sans-serif" font-weight="700">summary</text>
+    <rect x="834" y="548" width="98" height="24" rx="12" fill="#EEF4F8" stroke="#D7E1EB"/>
+    <rect x="942" y="548" width="98" height="24" rx="12" fill="#EEF4F8" stroke="#D7E1EB"/>
+    <rect x="838" y="552" width="44" height="16" rx="8" fill="#00EFC7"/>
+    <rect x="946" y="552" width="44" height="16" rx="8" fill="#8F8DFF"/>
+    <text x="812" y="648" fill="#C3D0DE" font-size="18" font-family="Manrope, Arial, sans-serif" font-weight="600">The mark stays left, title and summary share the row, and controls still sit side by side.</text>
+  </g>
+
+  <g>
+    <rect x="1120" y="360" width="320" height="384" rx="30" fill="#0E151C" stroke="#1F2C37"/>
+    <text x="1152" y="402" fill="#F7FBFF" font-size="28" font-family="Outfit, Arial, sans-serif" font-weight="700">Mobile</text>
+    <text x="1152" y="432" fill="#93A6BA" font-size="15" font-family="Manrope, Arial, sans-serif" font-weight="700">&lt; 561px</text>
+    <rect x="1152" y="462" width="256" height="182" rx="24" fill="#101920" stroke="#22313D"/>
+    <rect x="1174" y="486" width="38" height="38" rx="12" fill="#0D131A" stroke="#22313D"/>
+    <g transform="translate(1180 491) scale(0.12)">
+      <path d="M36 204L86 54L130 198L222 48" stroke="#F7FBFF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M134 54L220 132" stroke="#F7FBFF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="1224" y="503" fill="#F7FBFF" font-size="27" font-family="Outfit, Arial, sans-serif" font-weight="800">NOX</text>
+    <rect x="1174" y="548" width="98" height="24" rx="12" fill="#152028" stroke="#23313D"/>
+    <rect x="1178" y="552" width="44" height="16" rx="8" fill="#00FFAA"/>
+    <rect x="1174" y="584" width="98" height="24" rx="12" fill="#152028" stroke="#23313D"/>
+    <rect x="1178" y="588" width="44" height="16" rx="8" fill="#9392FF"/>
+    <text x="1152" y="676" fill="#C3D0DE" font-size="18" font-family="Manrope, Arial, sans-serif" font-weight="600">Three clean rows: mark plus name, language toggle, then theme toggle.</text>
+  </g>
+
+  <g>
+    <rect x="100" y="792" width="1340" height="96" rx="28" fill="#0E151C" stroke="#1F2C37"/>
+    <rect x="128" y="824" width="186" height="32" rx="16" fill="#111B23" stroke="#223340"/>
+    <text x="165" y="845" fill="#DDE8F4" font-size="14" font-family="Manrope, Arial, sans-serif" font-weight="700">Transparent background</text>
+    <rect x="336" y="824" width="126" height="32" rx="16" fill="#111B23" stroke="#223340"/>
+    <text x="372" y="845" fill="#DDE8F4" font-size="14" font-family="Manrope, Arial, sans-serif" font-weight="700">PNG export</text>
+    <rect x="484" y="824" width="150" height="32" rx="16" fill="#111B23" stroke="#223340"/>
+    <text x="524" y="845" fill="#DDE8F4" font-size="14" font-family="Manrope, Arial, sans-serif" font-weight="700">SVG preview</text>
+    <rect x="656" y="824" width="152" height="32" rx="16" fill="#111B23" stroke="#223340"/>
+    <text x="691" y="845" fill="#DDE8F4" font-size="14" font-family="Manrope, Arial, sans-serif" font-weight="700">Live preview</text>
+    <rect x="830" y="824" width="164" height="32" rx="16" fill="#111B23" stroke="#223340"/>
+    <text x="864" y="845" fill="#DDE8F4" font-size="14" font-family="Manrope, Arial, sans-serif" font-weight="700">PT-BR / EN</text>
+    <rect x="1016" y="824" width="194" height="32" rx="16" fill="#111B23" stroke="#223340"/>
+    <text x="1058" y="845" fill="#DDE8F4" font-size="14" font-family="Manrope, Arial, sans-serif" font-weight="700">Dark / Light themes</text>
+    <rect x="1232" y="824" width="176" height="32" rx="16" fill="#111B23" stroke="#223340"/>
+    <text x="1274" y="845" fill="#DDE8F4" font-size="14" font-family="Manrope, Arial, sans-serif" font-weight="700">Rust engine core</text>
+  </g>
+
+  <defs>
+    <filter id="blur" x="-170" y="-190" width="1864" height="1320" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="92"/>
+    </filter>
+    <linearGradient id="surface" x1="118" y1="112" x2="1454" y2="892" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0D131A"/>
+      <stop offset="1" stop-color="#0A0F15"/>
+    </linearGradient>
+  </defs>
+</svg>
