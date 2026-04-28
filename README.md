@@ -15,11 +15,13 @@ The project pairs a polished Next.js studio with a dedicated Rust renderer so cr
 
 ## Highlights
 
-- Art-directed QR studio with three render styles: `square`, `dots`, and `lines`.
+- Art-directed QR studio with eight render styles: `square`, `dots`, `lines`, `triangles`, `hexagons`, `blobs`, `glyphs`, and `fractal`.
 - Rust backend split into `api`, `engine`, `core`, `render`, and `validation` responsibilities.
+- Phase 1 matrix modeling with per-module roles and importance scoring, so the QR is treated as structure rather than a flat bitmap.
+- Phase 2 renderer abstraction with controlled module transforms, expressive primitives, and strict preservation of reading patterns.
 - Transparent or solid canvas backgrounds with bounded sizes from `256px` to `1024px`.
 - Dark and light themes, PT-BR and EN localization, and responsive behavior across desktop, tablet, and mobile ranges.
-- Automated regression coverage for backend contract, export flow, theme behavior, and mobile layout stability.
+- Automated coverage across backend unit tests, frontend typecheck, and full-stack regression for backend contract, export flow, theme behavior, and mobile layout stability.
 - Reproducible documentation assets generated from the running product surface through Playwright.
 
 ## Gallery
@@ -70,6 +72,16 @@ NOX treats QR generation as a visual system rather than a form utility.
 
 The frontend owns authoring, localization, theme state, motion, and presentation. The backend owns the render contract, QR module geometry, SVG generation, raster export, and runtime endpoints. That split keeps the public codebase readable while still making room for future renderer growth.
 
+## Engine Status
+
+NOX currently ships the first three implementation layers of the roadmap:
+
+- Phase 0: structural backend split into `api`, `engine`, `core`, `render`, and `validation`
+- Phase 1: matrix parsing into semantic module roles plus importance scoring for controlled styling
+- Phase 2: modular renderer engine with multiple primitives and local geometric transforms
+
+For a deeper technical breakdown, see [docs/engine-overview.md](docs/engine-overview.md) and [docs/testing.md](docs/testing.md).
+
 ## Architecture
 
 ```mermaid
@@ -82,24 +94,26 @@ flowchart LR
 ```
 
 - [frontend/](frontend) contains the studio UI, motion system, API client, and persisted authoring preferences.
-- [backend/](backend) contains the Phase 0 structure: request handlers in `api`, orchestration in `engine`, QR structure logic in `core`, renderers in `render`, and guardrails in `validation`.
+- [backend/](backend) contains the Phase 0-2 engine: request handlers in `api`, orchestration in `engine`, QR structure logic in `core`, renderer primitives and styles in `render`, and guardrails in `validation`.
 - [tests/e2e/regression.spec.mjs](tests/e2e/regression.spec.mjs) exercises the live stack through Playwright and HTTP smoke checks.
 - [scripts/run-backend-unit-tests.sh](scripts/run-backend-unit-tests.sh) runs Rust unit tests in a disposable container, even when `cargo` is not installed locally.
-- [scripts/run-regression-tests.sh](scripts/run-regression-tests.sh) brings up the stack and runs the full regression suite end to end.
+- [scripts/run-frontend-typecheck.sh](scripts/run-frontend-typecheck.sh) validates the frontend contract in an isolated Node container.
+- [scripts/run-regression-tests.sh](scripts/run-regression-tests.sh) brings up the stack, runs the full regression suite end to end, and cleans up containers automatically by default.
+- [scripts/run-test-battery.sh](scripts/run-test-battery.sh) runs backend unit tests, frontend typecheck, and end-to-end regression in sequence.
 - [scripts/capture-readme-screenshots.sh](scripts/capture-readme-screenshots.sh) and [scripts/capture-readme-screenshots.mjs](scripts/capture-readme-screenshots.mjs) regenerate the documentation assets from a live local stack.
 
 ## Feature Surface
 
 | Area | Current behavior |
 | --- | --- |
-| Rendering styles | `square`, `dots`, `lines` |
+| Rendering styles | `square`, `dots`, `lines`, `triangles`, `hexagons`, `blobs`, `glyphs`, `fractal` |
 | Outputs | Injected SVG preview and downloadable PNG export |
 | Canvas | Solid or transparent background, constrained to `256..1024` |
 | Interaction | Debounced live preview plus explicit generate action |
 | Localization | `pt-BR` and `en` |
 | Themes | `dark` and `light` |
 | Responsive header | Desktop `>= 1121`, tablet wide `721..1120`, tablet compact `561..720`, mobile `< 561` |
-| Regression safety | Backend unit tests plus Compose-backed Playwright end-to-end checks |
+| Regression safety | Backend unit tests, frontend typecheck, and Compose-backed Playwright end-to-end checks |
 
 ## API Contract
 
@@ -129,7 +143,7 @@ Response:
 
 Notes:
 
-- `style` supports `square`, `dots`, and `lines`.
+- `style` supports `square`, `dots`, `lines`, `triangles`, `hexagons`, `blobs`, `glyphs`, and `fractal`.
 - `size` is bounded by the backend between `256` and `1024`.
 - `png_base64` is returned as a complete data URL, ready for direct download handling in the frontend.
 
@@ -191,12 +205,18 @@ NEXT_PUBLIC_QR_API_URL=http://localhost:3001
 
 ## Automated Testing
 
-The project now includes two regression layers so changes fail loudly instead of drifting silently.
+The project now includes a local three-layer test battery plus CI regression coverage so changes fail loudly instead of drifting silently.
 
 Backend unit tests:
 
 ```bash
 bash scripts/run-backend-unit-tests.sh
+```
+
+Frontend typecheck:
+
+```bash
+bash scripts/run-frontend-typecheck.sh
 ```
 
 Full-stack regression suite:
@@ -205,15 +225,25 @@ Full-stack regression suite:
 bash scripts/run-regression-tests.sh
 ```
 
+Complete local battery:
+
+```bash
+bash scripts/run-test-battery.sh
+```
+
 The end-to-end suite validates:
 
-- `GET /health` and `POST /generate`
+- `GET /health` and `POST /generate` across every supported renderer style
 - SVG plus PNG export contract stability
 - Light theme export button styling
 - Dark theme export button styling
 - Mobile preview containment and horizontal overflow regressions
 
-GitHub Actions runs the same checks through [.github/workflows/regression.yml](.github/workflows/regression.yml) on pushes, pull requests, and manual dispatches.
+The regression script tears down the Compose stack automatically. For debugging, set `NOX_E2E_KEEP_STACK=1` before running it.
+
+`test-results/` is generated output from Playwright and is ignored by git. It should be treated as an execution artifact, not as source.
+
+GitHub Actions runs backend unit tests and full-stack regression through [.github/workflows/regression.yml](.github/workflows/regression.yml) on pushes, pull requests, and manual dispatches.
 
 ## Stack
 
@@ -258,10 +288,14 @@ GitHub Actions runs the same checks through [.github/workflows/regression.yml](.
 │   ├── public/
 │   └── store/
 ├── docs/
+│   ├── engine-overview.md
+│   ├── testing.md
 │   └── images/
 ├── scripts/
 │   ├── run-backend-unit-tests.sh
+│   ├── run-frontend-typecheck.sh
 │   ├── run-regression-tests.sh
+│   ├── run-test-battery.sh
 │   ├── capture-readme-screenshots.sh
 │   └── capture-readme-screenshots.mjs
 ├── tests/
@@ -284,6 +318,11 @@ bash scripts/capture-readme-screenshots.sh
 This regenerates the current desktop, tablet, compact tablet, mobile, collapsed-header, and dark/light theme screenshots inside `docs/images/`.
 
 The latest light-theme captures already include the refined export button overlay so the documentation matches the current UI behavior.
+
+## Additional Docs
+
+- [docs/engine-overview.md](docs/engine-overview.md) documents the Phase 0-2 architecture, module roles, and renderer system.
+- [docs/testing.md](docs/testing.md) documents the test layers, scripts, CI behavior, and generated artifacts.
 
 ## Deployment Note
 

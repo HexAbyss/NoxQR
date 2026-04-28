@@ -4,10 +4,10 @@ use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use image::{DynamicImage, ImageFormat, RgbaImage};
 
 use crate::{
-    core::{encoding::encode_qr_matrix, matrix::QrMatrix},
+    core::encoding::encode_qr_matrix,
     error::AppError,
     models::{request::GenerateRequest, response::GenerateResponse},
-    render::{renderer_for, ModuleKind, RasterModuleGeometry, Renderer, SvgModuleGeometry},
+    render::{renderer_for, RenderOptions},
     validation::{validate_generate_request, ValidatedGenerateRequest},
 };
 
@@ -25,108 +25,31 @@ impl QrEngine {
 
     fn render_response(
         &self,
-        matrix: &QrMatrix,
+        matrix: &crate::core::matrix::QrMatrix,
         request: ValidatedGenerateRequest,
     ) -> Result<GenerateResponse, AppError> {
-        let total_modules = matrix.width() + (QUIET_ZONE * 2);
-        let styled_renderer = renderer_for(request.style);
-        let structural_renderer = crate::render::styles::square::SquareRenderer;
-        let foreground_hex = request.foreground.to_hex();
-        let background_hex = request.background.to_hex();
-
-        let mut svg = String::with_capacity(total_modules * total_modules * 48);
-        svg.push_str(&format!(
-            r#"<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {view_box} {view_box}" fill="none" role="img" aria-label="Generated artistic QR code">"#,
-            size = request.size,
-            view_box = total_modules,
-        ));
-        if !request.transparent_background {
-            svg.push_str(&format!(
-                r#"<rect width="{view_box}" height="{view_box}" fill="{background}" />"#,
-                view_box = total_modules,
-                background = background_hex,
-            ));
-        }
-
-        let mut image = RgbaImage::from_pixel(
-            request.size,
-            request.size,
-            if request.transparent_background {
-                request.background.to_rgba_with_alpha(0)
-            } else {
-                request.background.to_rgba()
+        let renderer = renderer_for(request.style);
+        let rendered = renderer.render(
+            matrix,
+            &RenderOptions {
+                canvas_size: request.size,
+                quiet_zone: QUIET_ZONE,
+                foreground_hex: request.foreground.to_hex(),
+                background_hex: request.background.to_hex(),
+                foreground_rgba: request.foreground.to_rgba(),
+                background_rgba: if request.transparent_background {
+                    request.background.to_rgba_with_alpha(0)
+                } else {
+                    request.background.to_rgba()
+                },
+                transparent_background: request.transparent_background,
             },
         );
 
-        for y in 0..matrix.width() {
-            for x in 0..matrix.width() {
-                if !matrix.is_dark(x, y) {
-                    continue;
-                }
-
-                let kind = matrix.module_kind(x, y);
-                let grid_x = x + QUIET_ZONE;
-                let grid_y = y + QUIET_ZONE;
-                let svg_geometry = SvgModuleGeometry {
-                    cell_x: x,
-                    cell_y: y,
-                    x: grid_x as f32,
-                    y: grid_y as f32,
-                    size: 1.0,
-                    kind,
-                };
-                let raster_geometry = raster_geometry(
-                    x,
-                    y,
-                    grid_x,
-                    grid_y,
-                    total_modules,
-                    request.size,
-                    kind,
-                );
-
-                let renderer: &dyn Renderer = if kind == ModuleKind::Structural {
-                    &structural_renderer
-                } else {
-                    styled_renderer.as_ref()
-                };
-
-                svg.push_str(&renderer.render_svg_module(svg_geometry, &foreground_hex));
-                renderer.rasterize_module(&mut image, raster_geometry, request.foreground.to_rgba());
-            }
-        }
-
-        svg.push_str("</svg>");
-
         Ok(GenerateResponse {
-            svg,
-            png_base64: encode_png(image)?,
+            svg: rendered.svg,
+            png_base64: encode_png(rendered.image)?,
         })
-    }
-}
-
-fn raster_geometry(
-    cell_x: usize,
-    cell_y: usize,
-    grid_x: usize,
-    grid_y: usize,
-    total_modules: usize,
-    canvas_size: u32,
-    kind: ModuleKind,
-) -> RasterModuleGeometry {
-    let x0 = ((grid_x as u64) * (canvas_size as u64) / (total_modules as u64)) as u32;
-    let x1 = (((grid_x + 1) as u64) * (canvas_size as u64) / (total_modules as u64)) as u32;
-    let y0 = ((grid_y as u64) * (canvas_size as u64) / (total_modules as u64)) as u32;
-    let y1 = (((grid_y + 1) as u64) * (canvas_size as u64) / (total_modules as u64)) as u32;
-
-    RasterModuleGeometry {
-        cell_x,
-        cell_y,
-        x0,
-        y0,
-        x1,
-        y1,
-        kind,
     }
 }
 
@@ -138,4 +61,126 @@ fn encode_png(image: RgbaImage) -> Result<String, AppError> {
         "data:image/png;base64,{}",
         BASE64.encode(cursor.into_inner())
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use image::{imageops, load_from_memory, GrayImage};
+    use rqrr::PreparedImage;
+    use crate::{models::request::GenerateRequest, render::RenderStyle};
+
+    fn sample_request(style: RenderStyle) -> GenerateRequest {
+        GenerateRequest {
+            data: "https://github.com/HexAbyss/NoxQR".to_string(),
+            style,
+            color: "#00FFAA".to_string(),
+            background: "#0D0D0D".to_string(),
+            transparent_background: true,
+            size: 256,
+        }
+    }
+
+    fn decode_png_payload(png_base64: &str) -> String {
+        let encoded = png_base64
+            .strip_prefix("data:image/png;base64,")
+            .expect("png payload should be a data URL");
+        let bytes = BASE64.decode(encoded).expect("png should decode from base64");
+        let image = load_from_memory(&bytes)
+            .expect("png should load as an image")
+            .to_luma8();
+
+        for invert in [false, true] {
+            if let Some(content) = decode_thresholded(image.clone(), invert) {
+                return content;
+            }
+        }
+
+        panic!("qr should remain decodable")
+    }
+
+    fn decode_thresholded(mut image: GrayImage, invert: bool) -> Option<String> {
+        if invert {
+            imageops::invert(&mut image);
+        }
+
+        let min = image.pixels().map(|pixel| pixel[0]).min()?;
+        let max = image.pixels().map(|pixel| pixel[0]).max()?;
+        let threshold = ((min as u16 + max as u16) / 2) as u8;
+
+        for pixel in image.pixels_mut() {
+            pixel[0] = if pixel[0] >= threshold { 255 } else { 0 };
+        }
+
+        let mut prepared = PreparedImage::prepare(image);
+        prepared
+            .detect_grids()
+            .into_iter()
+            .find_map(|grid| grid.decode().ok().map(|(_, content)| content))
+    }
+
+    #[test]
+    fn dot_renderer_only_keeps_square_modules_for_strict_roles() {
+        let request = sample_request(RenderStyle::Dots);
+        let matrix = encode_qr_matrix(&request.data).expect("matrix should encode");
+        let expected_square_modules = (0..matrix.width())
+            .flat_map(|y| (0..matrix.width()).map(move |x| (x, y)))
+            .filter(|&(x, y)| {
+                let module = matrix.module(x, y);
+                module.value && module.role.requires_strict_rendering()
+            })
+            .count();
+
+        let response = QrEngine
+            .generate(request)
+            .expect("request should render successfully");
+
+        assert_eq!(response.svg.matches("<rect ").count(), expected_square_modules);
+        assert!(response.svg.matches("<circle ").count() > 0);
+    }
+
+    #[test]
+    fn phase_two_renderers_generate_svg_and_png() {
+        for style in [
+            RenderStyle::Square,
+            RenderStyle::Dots,
+            RenderStyle::Lines,
+            RenderStyle::Triangles,
+            RenderStyle::Hexagons,
+            RenderStyle::Blobs,
+            RenderStyle::Glyphs,
+            RenderStyle::Fractal,
+        ] {
+            let response = QrEngine
+                .generate(sample_request(style))
+                .expect("style should render successfully");
+
+            assert!(response.svg.starts_with("<svg"));
+            assert!(response.png_base64.starts_with("data:image/png;base64,"));
+        }
+    }
+
+    #[test]
+    fn square_renderer_png_remains_decodable() {
+        let mut request = sample_request(RenderStyle::Square);
+        request.transparent_background = false;
+        let expected = request.data.clone();
+        let response = QrEngine
+            .generate(request)
+            .expect("square style should render successfully");
+
+        assert_eq!(decode_png_payload(&response.png_base64), expected);
+    }
+
+    #[test]
+    fn fractal_renderer_png_remains_decodable() {
+        let mut request = sample_request(RenderStyle::Fractal);
+        request.transparent_background = false;
+        let expected = request.data.clone();
+        let response = QrEngine
+            .generate(request)
+            .expect("fractal style should render successfully");
+
+        assert_eq!(decode_png_payload(&response.png_base64), expected);
+    }
 }

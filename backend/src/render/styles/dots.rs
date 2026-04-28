@@ -1,28 +1,41 @@
 use image::{Rgba, RgbaImage};
 
-use crate::render::{fill_circle, RasterModuleGeometry, Renderer, SvgModuleGeometry};
+use crate::render::{expressive_transform, fill_circle, ModuleTransform, RasterModuleGeometry, Renderer, SvgModuleGeometry};
 
 #[derive(Debug, Default)]
 pub struct DotRenderer;
 
 impl Renderer for DotRenderer {
+    fn module_transform(&self, geometry: SvgModuleGeometry, matrix_width: usize) -> ModuleTransform {
+        expressive_transform(
+            geometry.cell_x,
+            geometry.cell_y,
+            matrix_width,
+            geometry.importance,
+            0.045,
+            0.74,
+            0.92,
+            0.0,
+        )
+    }
+
     fn render_svg_module(&self, geometry: SvgModuleGeometry, color: &str) -> String {
-        let radius = geometry.size * 0.38;
+        let radius = geometry.scaled_size() * (0.24 + (geometry.importance * 0.18));
+        let (center_x, center_y) = geometry.center();
 
         format!(
             r#"<circle cx="{cx:.4}" cy="{cy:.4}" r="{radius:.4}" fill="{color}" />"#,
-            cx = geometry.x + (geometry.size / 2.0),
-            cy = geometry.y + (geometry.size / 2.0),
+            cx = center_x,
+            cy = center_y,
             radius = radius,
             color = color,
         )
     }
 
     fn rasterize_module(&self, canvas: &mut RgbaImage, geometry: RasterModuleGeometry, color: Rgba<u8>) {
-        let radius = ((geometry.width().min(geometry.height()) as f32) * 0.38).round() as i32;
-        let center_x = geometry.x0 as i32 + (geometry.width() as i32 / 2);
-        let center_y = geometry.y0 as i32 + (geometry.height() as i32 / 2);
+        let radius = (geometry.scaled_size() * (0.24 + (geometry.importance * 0.18))).round() as i32;
+        let (center_x, center_y) = geometry.center();
 
-        fill_circle(canvas, center_x, center_y, radius, color);
+        fill_circle(canvas, center_x.round() as i32, center_y.round() as i32, radius, color);
     }
 }

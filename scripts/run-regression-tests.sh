@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLAYWRIGHT_IMAGE="${PLAYWRIGHT_IMAGE:-mcr.microsoft.com/playwright:v1.53.0-noble}"
 FRONTEND_URL="${NOX_E2E_FRONTEND_URL:-http://127.0.0.1:3080}"
 BACKEND_URL="${NOX_E2E_BACKEND_URL:-http://127.0.0.1:3081}"
+KEEP_STACK="${NOX_E2E_KEEP_STACK:-0}"
 
 wait_for_url() {
   local url="$1"
@@ -26,7 +27,17 @@ wait_for_url() {
   done
 }
 
+cleanup() {
+  if [[ "$KEEP_STACK" == "1" ]]; then
+    return
+  fi
+
+  docker compose down --remove-orphans >/dev/null 2>&1 || true
+}
+
 cd "$ROOT_DIR"
+
+trap cleanup EXIT
 
 docker compose up -d --build frontend backend
 

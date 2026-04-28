@@ -12,7 +12,7 @@ import { useShallow } from "zustand/react/shallow";
 
 import { useQRStore, type QRStyle } from "@/store/useQRStore";
 
-const STYLE_ORDER: QRStyle[] = ["square", "dots", "lines"];
+const STYLE_ORDER: QRStyle[] = ["square", "dots", "lines", "triangles", "hexagons", "blobs", "glyphs", "fractal"];
 
 export interface ControlsPanelCopy {
   eyebrow: string;

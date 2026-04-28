@@ -1,7 +1,11 @@
 mod renderer;
 pub mod styles;
 
-pub use crate::core::matrix::ModuleKind;
-pub use renderer::{RasterModuleGeometry, RenderStyle, Renderer, SvgModuleGeometry};
-pub(crate) use renderer::{fill_circle, fill_rect};
+pub use renderer::{
+	ModuleTransform, RasterModuleGeometry, RenderOptions, RenderStyle, Renderer,
+	SvgModuleGeometry,
+};
+pub(crate) use renderer::{
+	expressive_transform, fill_circle, fill_polygon, fill_rect, modulation_seed, svg_polygon,
+};
 pub use styles::renderer_for;

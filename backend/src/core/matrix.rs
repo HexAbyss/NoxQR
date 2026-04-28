@@ -1,17 +1,75 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ModuleKind {
+pub enum ModuleRole {
     Data,
-    Structural,
+    Finder,
+    Alignment,
+    Timing,
+    Format,
+    Version,
+    FixedDark,
+    QuietZone,
+}
+
+impl ModuleRole {
+    pub fn requires_strict_rendering(self) -> bool {
+        matches!(self, Self::Finder | Self::Alignment)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Module {
+    pub value: bool,
+    pub role: ModuleRole,
+}
+
+impl Module {
+    pub const fn quiet_zone() -> Self {
+        Self {
+            value: false,
+            role: ModuleRole::QuietZone,
+        }
+    }
+}
+
+pub fn compute_importance(module: &Module) -> f32 {
+    match module.role {
+        ModuleRole::Finder => 1.0,
+        ModuleRole::Alignment => 0.9,
+        ModuleRole::Timing => 0.85,
+        ModuleRole::Format => 0.8,
+        ModuleRole::Version => 0.75,
+        ModuleRole::FixedDark => 0.7,
+        ModuleRole::Data => 0.6,
+        ModuleRole::QuietZone => 1.0,
+    }
+}
+
+pub fn role_for_position(x: usize, y: usize, width: usize, version: usize) -> ModuleRole {
+    if is_finder_module(x, y, width) {
+        ModuleRole::Finder
+    } else if is_alignment_module(x, y, width, version) {
+        ModuleRole::Alignment
+    } else if is_timing_module(x, y, width) {
+        ModuleRole::Timing
+    } else if is_format_module(x, y, width) {
+        ModuleRole::Format
+    } else if is_version_module(x, y, width, version) {
+        ModuleRole::Version
+    } else if is_fixed_dark_module(x, y, width) {
+        ModuleRole::FixedDark
+    } else {
+        ModuleRole::Data
+    }
 }
 
 pub struct QrMatrix {
     width: usize,
     version: usize,
-    modules: Vec<bool>,
+    modules: Vec<Module>,
 }
 
 impl QrMatrix {
-    pub fn new(width: usize, version: usize, modules: Vec<bool>) -> Self {
+    pub fn new(width: usize, version: usize, modules: Vec<Module>) -> Self {
         Self {
             width,
             version,
@@ -23,25 +81,24 @@ impl QrMatrix {
         self.width
     }
 
-    pub fn is_dark(&self, x: usize, y: usize) -> bool {
+    pub fn version(&self) -> usize {
+        self.version
+    }
+
+    pub fn module(&self, x: usize, y: usize) -> Module {
         self.modules[(y * self.width) + x]
     }
 
-    pub fn module_kind(&self, x: usize, y: usize) -> ModuleKind {
-        if self.is_structural(x, y) {
-            ModuleKind::Structural
-        } else {
-            ModuleKind::Data
-        }
+    pub fn is_dark(&self, x: usize, y: usize) -> bool {
+        self.module(x, y).value
     }
 
-    fn is_structural(&self, x: usize, y: usize) -> bool {
-        is_finder_module(x, y, self.width)
-            || is_alignment_module(x, y, self.width, self.version)
-            || is_timing_module(x, y, self.width)
-            || is_format_module(x, y, self.width)
-            || is_version_module(x, y, self.width, self.version)
-            || is_fixed_dark_module(x, y, self.width)
+    pub fn module_role(&self, x: usize, y: usize) -> ModuleRole {
+        self.module(x, y).role
+    }
+
+    pub fn module_importance(&self, x: usize, y: usize) -> f32 {
+        compute_importance(&self.module(x, y))
     }
 }
 
@@ -162,7 +219,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn finder_patterns_remain_structural() {
+    fn finder_patterns_remain_finders() {
         assert!(is_finder_module(0, 0, 21));
         assert!(is_finder_module(20, 0, 21));
         assert!(is_finder_module(0, 20, 21));
@@ -173,5 +230,39 @@ mod tests {
     fn alignment_patterns_skip_reserved_corners() {
         assert!(is_alignment_module(22, 22, 45, 7));
         assert!(!is_alignment_module(6, 6, 45, 7));
+    }
+
+    #[test]
+    fn position_roles_match_reserved_qr_regions() {
+        assert_eq!(role_for_position(0, 0, 21, 1), ModuleRole::Finder);
+        assert_eq!(role_for_position(8, 0, 21, 1), ModuleRole::Format);
+        assert_eq!(role_for_position(6, 10, 21, 1), ModuleRole::Timing);
+        assert_eq!(role_for_position(8, 13, 21, 1), ModuleRole::FixedDark);
+        assert_eq!(role_for_position(10, 10, 21, 1), ModuleRole::Data);
+    }
+
+    #[test]
+    fn importance_prioritizes_finders_over_data() {
+        let finder = Module {
+            value: true,
+            role: ModuleRole::Finder,
+        };
+        let data = Module {
+            value: true,
+            role: ModuleRole::Data,
+        };
+
+        assert!(compute_importance(&finder) > compute_importance(&data));
+    }
+
+    #[test]
+    fn strict_rendering_is_limited_to_reading_patterns() {
+        assert!(ModuleRole::Finder.requires_strict_rendering());
+        assert!(ModuleRole::Alignment.requires_strict_rendering());
+        assert!(!ModuleRole::Timing.requires_strict_rendering());
+        assert!(!ModuleRole::Format.requires_strict_rendering());
+        assert!(!ModuleRole::Version.requires_strict_rendering());
+        assert!(!ModuleRole::FixedDark.requires_strict_rendering());
+        assert!(!ModuleRole::Data.requires_strict_rendering());
     }
 }

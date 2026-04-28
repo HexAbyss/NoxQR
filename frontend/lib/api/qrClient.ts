@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-export type QRStyle = "square" | "dots" | "lines";
+export type QRStyle = "square" | "dots" | "lines" | "triangles" | "hexagons" | "blobs" | "glyphs" | "fractal";
 
 export interface GenerateQRPayload {
   data: string;

@@ -77,6 +77,26 @@ const COPY: Record<Locale, DemoCopy> = {
           label: "Lines",
           note: "Direcao modular com leitura preservada em cada celula.",
         },
+        triangles: {
+          label: "Triangles",
+          note: "Arestas angulares com rotacao controlada por modulo.",
+        },
+        hexagons: {
+          label: "Hexagons",
+          note: "Ritmo colmeia para composicoes mais compactas.",
+        },
+        blobs: {
+          label: "Blobs",
+          note: "Massa organica com contorno mais fluido e suave.",
+        },
+        glyphs: {
+          label: "Glyphs",
+          note: "Cruzamentos simbolicos para uma leitura mais grafica.",
+        },
+        fractal: {
+          label: "Fractal",
+          note: "Subdivisoes internas que ecoam a propria matriz.",
+        },
       },
       buttons: {
         generate: "Gerar",
@@ -176,6 +196,26 @@ const COPY: Record<Locale, DemoCopy> = {
         lines: {
           label: "Lines",
           note: "Modular direction with readability preserved per cell.",
+        },
+        triangles: {
+          label: "Triangles",
+          note: "Angular modules with controlled local rotation.",
+        },
+        hexagons: {
+          label: "Hexagons",
+          note: "Honeycomb rhythm for denser visual packing.",
+        },
+        blobs: {
+          label: "Blobs",
+          note: "Organic clusters with a softer silhouette.",
+        },
+        glyphs: {
+          label: "Glyphs",
+          note: "Symbolic cross-strokes for sharper graphic language.",
+        },
+        fractal: {
+          label: "Fractal",
+          note: "Nested subdivisions that echo the matrix itself.",
         },
       },
       buttons: {

@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 const FRONTEND_URL = process.env.NOX_E2E_FRONTEND_URL ?? "http://127.0.0.1:3080";
 const BACKEND_URL = process.env.NOX_E2E_BACKEND_URL ?? "http://127.0.0.1:3081";
 const MOBILE_VIEWPORT = { width: 390, height: 844 };
+const STYLES = ["square", "dots", "lines", "triangles", "hexagons", "blobs", "glyphs", "fractal"];
 
 function parseRgb(value) {
   const match = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
@@ -45,28 +46,30 @@ async function openStudio(page, { locale = "en", theme = "dark" } = {}) {
   await waitForPreview(page);
 }
 
-test("backend health and generate contract stay stable", async ({ request }) => {
+test("backend health and phase 2 render contract stay stable", async ({ request }) => {
   const healthResponse = await request.get(`${BACKEND_URL}/health`);
   expect(healthResponse.ok()).toBeTruthy();
   await expect(healthResponse.json()).resolves.toEqual({ status: "ok" });
 
-  const generateResponse = await request.post(`${BACKEND_URL}/generate`, {
-    data: {
-      data: "https://github.com/HexAbyss/NoxQR",
-      style: "dots",
-      color: "#00FFAA",
-      background: "#0D0D0D",
-      transparent_background: true,
-      size: 512,
-    },
-  });
+  for (const style of STYLES) {
+    const generateResponse = await request.post(`${BACKEND_URL}/generate`, {
+      data: {
+        data: "https://github.com/HexAbyss/NoxQR",
+        style,
+        color: "#00FFAA",
+        background: "#0D0D0D",
+        transparent_background: true,
+        size: 512,
+      },
+    });
 
-  expect(generateResponse.ok()).toBeTruthy();
+    expect(generateResponse.ok()).toBeTruthy();
 
-  const body = await generateResponse.json();
-  expect(body.svg).toContain("<svg");
-  expect(body.svg).toContain("Generated artistic QR code");
-  expect(body.png_base64).toMatch(/^data:image\/png;base64,/);
+    const body = await generateResponse.json();
+    expect(body.svg).toContain("<svg");
+    expect(body.svg).toContain("Generated artistic QR code");
+    expect(body.png_base64).toMatch(/^data:image\/png;base64,/);
+  }
 });
 
 test("light theme export button keeps a light overlay and exposes a PNG download", async ({ page }) => {
