@@ -1,6 +1,6 @@
 use image::{Rgba, RgbaImage};
 
-use crate::services::renderer::{fill_circle, RasterModuleGeometry, Renderer, SvgModuleGeometry};
+use crate::render::{fill_circle, RasterModuleGeometry, Renderer, SvgModuleGeometry};
 
 #[derive(Debug, Default)]
 pub struct DotRenderer;

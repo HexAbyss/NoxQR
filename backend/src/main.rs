@@ -1,7 +1,10 @@
 mod error;
+mod api;
+mod core;
+mod engine;
 mod models;
-mod routes;
-mod services;
+mod render;
+mod validation;
 
 use std::{env, net::SocketAddr};
 
@@ -26,7 +29,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/health", get(health))
-        .route("/generate", post(routes::generate::generate_qr))
+        .route("/generate", post(api::handlers::generate_qr))
         .layer(
             CorsLayer::new()
                 .allow_origin(Any)

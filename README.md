@@ -16,9 +16,10 @@ The project pairs a polished Next.js studio with a dedicated Rust renderer so cr
 ## Highlights
 
 - Art-directed QR studio with three render styles: `square`, `dots`, and `lines`.
-- Rust backend responsible for generation, validation, and final SVG plus PNG output.
+- Rust backend split into `api`, `engine`, `core`, `render`, and `validation` responsibilities.
 - Transparent or solid canvas backgrounds with bounded sizes from `256px` to `1024px`.
 - Dark and light themes, PT-BR and EN localization, and responsive behavior across desktop, tablet, and mobile ranges.
+- Automated regression coverage for backend contract, export flow, theme behavior, and mobile layout stability.
 - Reproducible documentation assets generated from the running product surface through Playwright.
 
 ## Gallery
@@ -81,7 +82,10 @@ flowchart LR
 ```
 
 - [frontend/](frontend) contains the studio UI, motion system, API client, and persisted authoring preferences.
-- [backend/](backend) contains request validation, renderer selection, SVG composition, PNG export, and HTTP routes.
+- [backend/](backend) contains the Phase 0 structure: request handlers in `api`, orchestration in `engine`, QR structure logic in `core`, renderers in `render`, and guardrails in `validation`.
+- [tests/e2e/regression.spec.mjs](tests/e2e/regression.spec.mjs) exercises the live stack through Playwright and HTTP smoke checks.
+- [scripts/run-backend-unit-tests.sh](scripts/run-backend-unit-tests.sh) runs Rust unit tests in a disposable container, even when `cargo` is not installed locally.
+- [scripts/run-regression-tests.sh](scripts/run-regression-tests.sh) brings up the stack and runs the full regression suite end to end.
 - [scripts/capture-readme-screenshots.sh](scripts/capture-readme-screenshots.sh) and [scripts/capture-readme-screenshots.mjs](scripts/capture-readme-screenshots.mjs) regenerate the documentation assets from a live local stack.
 
 ## Feature Surface
@@ -95,6 +99,7 @@ flowchart LR
 | Localization | `pt-BR` and `en` |
 | Themes | `dark` and `light` |
 | Responsive header | Desktop `>= 1121`, tablet wide `721..1120`, tablet compact `561..720`, mobile `< 561` |
+| Regression safety | Backend unit tests plus Compose-backed Playwright end-to-end checks |
 
 ## API Contract
 
@@ -184,6 +189,32 @@ Default frontend environment:
 NEXT_PUBLIC_QR_API_URL=http://localhost:3001
 ```
 
+## Automated Testing
+
+The project now includes two regression layers so changes fail loudly instead of drifting silently.
+
+Backend unit tests:
+
+```bash
+bash scripts/run-backend-unit-tests.sh
+```
+
+Full-stack regression suite:
+
+```bash
+bash scripts/run-regression-tests.sh
+```
+
+The end-to-end suite validates:
+
+- `GET /health` and `POST /generate`
+- SVG plus PNG export contract stability
+- Light theme export button styling
+- Dark theme export button styling
+- Mobile preview containment and horizontal overflow regressions
+
+GitHub Actions runs the same checks through [.github/workflows/regression.yml](.github/workflows/regression.yml) on pushes, pull requests, and manual dispatches.
+
 ## Stack
 
 ### Frontend
@@ -209,8 +240,16 @@ NEXT_PUBLIC_QR_API_URL=http://localhost:3001
 
 ```text
 .
+├── .github/
+│   └── workflows/
+│       └── regression.yml
 ├── backend/
 │   ├── src/
+│   │   ├── api/
+│   │   ├── core/
+│   │   ├── engine/
+│   │   ├── render/
+│   │   └── validation/
 │   └── Cargo.toml
 ├── frontend/
 │   ├── app/
@@ -221,8 +260,13 @@ NEXT_PUBLIC_QR_API_URL=http://localhost:3001
 ├── docs/
 │   └── images/
 ├── scripts/
+│   ├── run-backend-unit-tests.sh
+│   ├── run-regression-tests.sh
 │   ├── capture-readme-screenshots.sh
 │   └── capture-readme-screenshots.mjs
+├── tests/
+│   └── e2e/
+│       └── regression.spec.mjs
 ├── docker-compose.yml
 └── README.md
 ```
@@ -238,6 +282,8 @@ bash scripts/capture-readme-screenshots.sh
 ```
 
 This regenerates the current desktop, tablet, compact tablet, mobile, collapsed-header, and dark/light theme screenshots inside `docs/images/`.
+
+The latest light-theme captures already include the refined export button overlay so the documentation matches the current UI behavior.
 
 ## Deployment Note
 

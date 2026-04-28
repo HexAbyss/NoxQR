@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::services::renderer::RenderStyle;
+use crate::render::RenderStyle;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct GenerateRequest {

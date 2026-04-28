@@ -1,6 +1,6 @@
 use image::{Rgba, RgbaImage};
 
-use crate::services::renderer::{fill_rect, RasterModuleGeometry, Renderer, SvgModuleGeometry};
+use crate::render::{fill_rect, RasterModuleGeometry, Renderer, SvgModuleGeometry};
 
 #[derive(Debug, Default)]
 pub struct LineRenderer;

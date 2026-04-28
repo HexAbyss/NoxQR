@@ -38,6 +38,9 @@
   --header-accent-theme: linear-gradient(135deg, rgba(136, 123, 255, 0.94), rgba(97, 224, 255, 0.9));
   --header-accent-on-locale: #04201c;
   --header-accent-on-theme: #ffffff;
+  --preview-action-surface: rgba(9, 13, 18, 0.66);
+  --preview-action-border: rgba(255, 255, 255, 0.14);
+  --preview-action-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
   --footer-bg: #000000;
   --footer-text: #f6f8fb;
   --footer-muted: rgba(246, 248, 251, 0.68);
@@ -78,6 +81,9 @@ html[data-theme="light"] {
   --header-accent-locale: linear-gradient(135deg, rgba(102, 235, 205, 0.88), rgba(106, 225, 179, 0.86));
   --header-accent-theme: linear-gradient(135deg, rgba(153, 145, 255, 0.86), rgba(123, 216, 245, 0.82));
   --header-accent-on-locale: #092119;
+  --preview-action-surface: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(241, 247, 255, 0.96));
+  --preview-action-border: rgba(143, 161, 191, 0.34);
+  --preview-action-shadow: 0 16px 34px rgba(96, 112, 142, 0.16);
 }
 
 * {
@@ -883,10 +889,10 @@ html[data-theme="light"] .floating-header__mark-image {
   min-height: 2.7rem;
   min-width: 0;
   padding: 0 1rem;
-  border-color: rgba(255, 255, 255, 0.14);
-  background: rgba(9, 13, 18, 0.66);
+  border-color: var(--preview-action-border);
+  background: var(--preview-action-surface);
   backdrop-filter: blur(18px);
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
+  box-shadow: var(--preview-action-shadow);
   white-space: nowrap;
 }
 

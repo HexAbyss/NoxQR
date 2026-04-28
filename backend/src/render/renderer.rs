@@ -1,6 +1,8 @@
 use image::{Rgba, RgbaImage};
 use serde::{Deserialize, Serialize};
 
+use crate::core::matrix::ModuleKind;
+
 #[derive(Debug, Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum RenderStyle {
@@ -8,12 +10,6 @@ pub enum RenderStyle {
     Square,
     Dots,
     Lines,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ModuleKind {
-    Data,
-    Structural,
 }
 
 #[derive(Debug, Clone, Copy)]

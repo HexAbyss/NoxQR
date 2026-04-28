@@ -1,0 +1,34 @@
+name: Regression
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  backend-unit-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Rust backend unit tests
+        run: bash scripts/run-backend-unit-tests.sh
+
+  end-to-end-regression:
+    runs-on: ubuntu-latest
+    needs: backend-unit-tests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run full-stack regression suite
+        run: bash scripts/run-regression-tests.sh
+
+      - name: Shutdown compose stack
+        if: always()
+        run: docker compose down --remove-orphans

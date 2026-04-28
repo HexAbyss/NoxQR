@@ -1,6 +1,10 @@
 use axum::Json;
 
-use crate::{error::AppError, models::{request::GenerateRequest, response::GenerateResponse}, services::qr_engine::QrEngine};
+use crate::{
+    engine::pipeline::QrEngine,
+    error::AppError,
+    models::{request::GenerateRequest, response::GenerateResponse},
+};
 
 pub async fn generate_qr(
     Json(payload): Json<GenerateRequest>,
