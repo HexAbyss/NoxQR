@@ -1,6 +1,12 @@
+mod reliability;
+
 use image::Rgba;
 
 use crate::{error::AppError, models::request::GenerateRequest, render::RenderStyle};
+
+pub use reliability::{
+    assess_render_reliability, recommended_safety_bias, ValidationResult,
+};
 
 const MIN_SIZE: u32 = 256;
 const MAX_SIZE: u32 = 1024;
@@ -111,7 +117,7 @@ fn channel_to_linear(channel: u8) -> f32 {
     }
 }
 
-fn contrast_ratio(foreground: ParsedColor, background: ParsedColor) -> f32 {
+pub fn contrast_ratio(foreground: ParsedColor, background: ParsedColor) -> f32 {
     let foreground_luminance = foreground.relative_luminance();
     let background_luminance = background.relative_luminance();
     let (lighter, darker) = if foreground_luminance >= background_luminance {

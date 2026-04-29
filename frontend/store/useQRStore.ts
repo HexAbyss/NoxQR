@@ -7,7 +7,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import { generateQR, type GenerateQRPayload, type QRStyle } from "@/lib/api/qrClient";
+import { generateQR, type GenerateQRPayload, type QRStyle, type ValidationResult } from "@/lib/api/qrClient";
 
 export type Theme = "dark" | "light";
 export type Locale = "pt-BR" | "en";
@@ -15,6 +15,7 @@ export type Locale = "pt-BR" | "en";
 interface QRState extends GenerateQRPayload {
   svg: string;
   pngBase64: string;
+  validation: ValidationResult | null;
   loading: boolean;
   error: string | null;
   livePreview: boolean;
@@ -62,6 +63,7 @@ export const useQRStore = create<QRState>()(
       ...DEFAULTS,
       svg: "",
       pngBase64: "",
+      validation: null,
       loading: false,
       error: null,
       livePreview: true,
@@ -97,6 +99,7 @@ export const useQRStore = create<QRState>()(
           set({
             svg: "",
             pngBase64: "",
+            validation: null,
             loading: false,
             error: "Add content before generating a QR code.",
           });
@@ -123,6 +126,7 @@ export const useQRStore = create<QRState>()(
           set({
             svg: result.svg,
             pngBase64: result.pngBase64,
+            validation: result.validation,
             loading: false,
             error: null,
             lastGeneratedKey: nextRequestKey,
@@ -134,6 +138,7 @@ export const useQRStore = create<QRState>()(
 
           set({
             loading: false,
+            validation: null,
             error: error instanceof Error ? error.message : "Unable to generate the QR code.",
           });
         }

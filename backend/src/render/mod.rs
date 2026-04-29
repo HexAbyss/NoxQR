@@ -2,7 +2,7 @@ mod renderer;
 pub mod styles;
 
 pub use renderer::{
-	ModuleTransform, RasterModuleGeometry, RenderOptions, RenderStyle, Renderer,
+	ModuleTransform, RasterModuleGeometry, RenderOptions, RenderStyle, RenderTelemetry, Renderer,
 	SvgModuleGeometry,
 };
 pub(crate) use renderer::{

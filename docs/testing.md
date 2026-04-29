@@ -24,6 +24,8 @@ What it protects:
 - importance scoring behavior
 - renderer contract behavior in the backend
 - request validation logic
+- decoder-backed scanability for representative styles
+- reliability scoring and safety-bias heuristics
 
 ### 2. Frontend Typecheck
 
@@ -44,6 +46,7 @@ What it protects:
 - API payload and response typing
 - store and component contract stability
 - UI exposure of renderer styles
+- reliability telemetry mapping in the preview layer
 
 ### 3. Full-Stack Regression
 
@@ -71,7 +74,8 @@ What it protects:
 
 - `GET /health`
 - `POST /generate`
-- SVG and PNG contract stability across all supported styles
+- SVG, PNG, and validation contract stability across all supported styles
+- reliability telemetry visibility in the preview
 - export button behavior in light and dark themes
 - mobile containment and overflow regressions
 

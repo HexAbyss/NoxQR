@@ -28,12 +28,42 @@ pub struct RenderOptions {
     pub foreground_rgba: Rgba<u8>,
     pub background_rgba: Rgba<u8>,
     pub transparent_background: bool,
+    pub safety_bias: f32,
 }
 
 #[derive(Debug)]
 pub struct RenderOutput {
     pub svg: String,
     pub image: RgbaImage,
+    pub telemetry: RenderTelemetry,
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct RenderTelemetry {
+    pub module_count: usize,
+    pub data_module_count: usize,
+    pub strict_module_count: usize,
+    pub average_offset: f32,
+    pub max_offset: f32,
+    pub average_scale_delta: f32,
+    pub max_scale_delta: f32,
+    pub average_rotation_degrees: f32,
+    pub max_rotation_degrees: f32,
+    pub average_importance: f32,
+}
+
+#[derive(Debug, Default)]
+struct RenderTelemetryAccumulator {
+    module_count: usize,
+    data_module_count: usize,
+    strict_module_count: usize,
+    offset_sum: f32,
+    max_offset: f32,
+    scale_delta_sum: f32,
+    max_scale_delta: f32,
+    rotation_sum: f32,
+    max_rotation: f32,
+    importance_sum: f32,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -209,10 +239,56 @@ pub trait Renderer: Send + Sync {
     fn rasterize_module(&self, canvas: &mut RgbaImage, geometry: RasterModuleGeometry, color: Rgba<u8>);
 }
 
+impl RenderTelemetryAccumulator {
+    fn record(&mut self, role: ModuleRole, transform: ModuleTransform, importance: f32) {
+        self.module_count += 1;
+        self.importance_sum += importance;
+
+        if role == ModuleRole::Data {
+            self.data_module_count += 1;
+        } else {
+            self.strict_module_count += 1;
+        }
+
+        let offset = (transform.offset_x.mul_add(transform.offset_x, transform.offset_y * transform.offset_y)).sqrt();
+        let scale_delta = (1.0 - transform.scale).abs();
+        let rotation = transform.rotation_degrees.abs();
+
+        self.offset_sum += offset;
+        self.max_offset = self.max_offset.max(offset);
+        self.scale_delta_sum += scale_delta;
+        self.max_scale_delta = self.max_scale_delta.max(scale_delta);
+        self.rotation_sum += rotation;
+        self.max_rotation = self.max_rotation.max(rotation);
+    }
+
+    fn finish(self) -> RenderTelemetry {
+        if self.module_count == 0 {
+            return RenderTelemetry::default();
+        }
+
+        let module_count = self.module_count as f32;
+
+        RenderTelemetry {
+            module_count: self.module_count,
+            data_module_count: self.data_module_count,
+            strict_module_count: self.strict_module_count,
+            average_offset: self.offset_sum / module_count,
+            max_offset: self.max_offset,
+            average_scale_delta: self.scale_delta_sum / module_count,
+            max_scale_delta: self.max_scale_delta,
+            average_rotation_degrees: self.rotation_sum / module_count,
+            max_rotation_degrees: self.max_rotation,
+            average_importance: self.importance_sum / module_count,
+        }
+    }
+}
+
 fn render_matrix<R: Renderer + ?Sized>(renderer: &R, matrix: &QrMatrix, options: &RenderOptions) -> RenderOutput {
     let _quiet_zone = Module::quiet_zone();
     let total_modules = matrix.width() + (options.quiet_zone * 2);
     let strict_renderer = crate::render::styles::square::SquareRenderer;
+    let mut telemetry = RenderTelemetryAccumulator::default();
     let mut svg = String::with_capacity(total_modules * total_modules * 48);
     svg.push_str(&format!(
         r#"<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {view_box} {view_box}" fill="none" role="img" aria-label="Generated artistic QR code">"#,
@@ -253,6 +329,7 @@ fn render_matrix<R: Renderer + ?Sized>(renderer: &R, matrix: &QrMatrix, options:
             };
 
             if renderer.prefers_strict_rendering(module.role) {
+                telemetry.record(module.role, ModuleTransform::default(), importance);
                 let strict_geometry = raster_geometry(
                     x,
                     y,
@@ -269,8 +346,14 @@ fn render_matrix<R: Renderer + ?Sized>(renderer: &R, matrix: &QrMatrix, options:
                 continue;
             }
 
-            let transform = renderer.module_transform(base_svg_geometry, matrix.width());
+            let effective_importance = adjusted_importance(importance, options.safety_bias);
+            let transform = apply_safety_bias(
+                renderer.module_transform(base_svg_geometry, matrix.width()),
+                options.safety_bias,
+            );
+            telemetry.record(module.role, transform, effective_importance);
             let svg_geometry = SvgModuleGeometry {
+                importance: effective_importance,
                 transform,
                 ..base_svg_geometry
             };
@@ -293,7 +376,27 @@ fn render_matrix<R: Renderer + ?Sized>(renderer: &R, matrix: &QrMatrix, options:
 
     svg.push_str("</svg>");
 
-    RenderOutput { svg, image }
+    RenderOutput {
+        svg,
+        image,
+        telemetry: telemetry.finish(),
+    }
+}
+
+fn adjusted_importance(importance: f32, safety_bias: f32) -> f32 {
+    let bias = safety_bias.clamp(0.0, 1.0);
+    (importance + ((1.0 - importance) * bias * 0.65)).clamp(0.0, 1.0)
+}
+
+fn apply_safety_bias(transform: ModuleTransform, safety_bias: f32) -> ModuleTransform {
+    let bias = safety_bias.clamp(0.0, 1.0);
+
+    ModuleTransform {
+        offset_x: transform.offset_x * (1.0 - (0.92 * bias)),
+        offset_y: transform.offset_y * (1.0 - (0.92 * bias)),
+        scale: (transform.scale + ((1.0 - transform.scale) * bias)).clamp(0.0, 1.0),
+        rotation_degrees: transform.rotation_degrees * (1.0 - (0.95 * bias)),
+    }
 }
 
 fn raster_geometry(

@@ -19,9 +19,10 @@ The project pairs a polished Next.js studio with a dedicated Rust renderer so cr
 - Rust backend split into `api`, `engine`, `core`, `render`, and `validation` responsibilities.
 - Phase 1 matrix modeling with per-module roles and importance scoring, so the QR is treated as structure rather than a flat bitmap.
 - Phase 2 renderer abstraction with controlled module transforms, expressive primitives, and strict preservation of reading patterns.
+- Phase 3 reliability engine with post-render scoring, hostile scan simulations, and conservative auto-correction before the response is returned.
 - Transparent or solid canvas backgrounds with bounded sizes from `256px` to `1024px`.
 - Dark and light themes, PT-BR and EN localization, and responsive behavior across desktop, tablet, and mobile ranges.
-- Automated coverage across backend unit tests, frontend typecheck, and full-stack regression for backend contract, export flow, theme behavior, and mobile layout stability.
+- Automated coverage across backend unit tests, frontend typecheck, and full-stack regression for backend contract, reliability telemetry, export flow, theme behavior, and mobile layout stability.
 - Reproducible documentation assets generated from the running product surface through Playwright.
 
 ## Gallery
@@ -74,11 +75,12 @@ The frontend owns authoring, localization, theme state, motion, and presentation
 
 ## Engine Status
 
-NOX currently ships the first three implementation layers of the roadmap:
+NOX currently ships the first four implementation layers of the roadmap:
 
 - Phase 0: structural backend split into `api`, `engine`, `core`, `render`, and `validation`
 - Phase 1: matrix parsing into semantic module roles plus importance scoring for controlled styling
 - Phase 2: modular renderer engine with multiple primitives and local geometric transforms
+- Phase 3: reliability analysis with contrast, distortion, density, quiet zone, and scan simulation feedback
 
 For a deeper technical breakdown, see [docs/engine-overview.md](docs/engine-overview.md) and [docs/testing.md](docs/testing.md).
 
@@ -90,11 +92,12 @@ flowchart LR
     A --> C[Zustand authoring store]
     B --> D[Styled SVG output]
     B --> E[PNG data URL]
+  B --> G[Reliability report]
     B --> F[GET /health]
 ```
 
 - [frontend/](frontend) contains the studio UI, motion system, API client, and persisted authoring preferences.
-- [backend/](backend) contains the Phase 0-2 engine: request handlers in `api`, orchestration in `engine`, QR structure logic in `core`, renderer primitives and styles in `render`, and guardrails in `validation`.
+- [backend/](backend) contains the Phase 0-3 engine: request handlers in `api`, orchestration in `engine`, QR structure logic in `core`, renderer primitives and styles in `render`, and guardrails plus reliability scoring in `validation`.
 - [tests/e2e/regression.spec.mjs](tests/e2e/regression.spec.mjs) exercises the live stack through Playwright and HTTP smoke checks.
 - [scripts/run-backend-unit-tests.sh](scripts/run-backend-unit-tests.sh) runs Rust unit tests in a disposable container, even when `cargo` is not installed locally.
 - [scripts/run-frontend-typecheck.sh](scripts/run-frontend-typecheck.sh) validates the frontend contract in an isolated Node container.
@@ -108,6 +111,7 @@ flowchart LR
 | --- | --- |
 | Rendering styles | `square`, `dots`, `lines`, `triangles`, `hexagons`, `blobs`, `glyphs`, `fractal` |
 | Outputs | Injected SVG preview and downloadable PNG export |
+| Reliability | Score, risk, simulation results, suggestions, and conservative auto-correction |
 | Canvas | Solid or transparent background, constrained to `256..1024` |
 | Interaction | Debounced live preview plus explicit generate action |
 | Localization | `pt-BR` and `en` |
@@ -137,7 +141,27 @@ Response:
 ```json
 {
   "svg": "<svg>...</svg>",
-  "png_base64": "data:image/png;base64,..."
+  "png_base64": "data:image/png;base64,...",
+  "validation": {
+    "score": 0.91,
+    "risk": "low",
+    "metrics": {
+      "contrast_ratio": 12.2,
+      "distortion": 0.08,
+      "density": 0.31,
+      "quiet_zone_integrity": 1.0,
+      "simulation_pass_rate": 1.0
+    },
+    "simulations": [
+      { "name": "baseline", "passed": true },
+      { "name": "blur", "passed": true },
+      { "name": "distance", "passed": true },
+      { "name": "low_light", "passed": true }
+    ],
+    "corrections_applied": [],
+    "suggestions": [],
+    "auto_corrected": false
+  }
 }
 ```
 
@@ -146,6 +170,9 @@ Notes:
 - `style` supports `square`, `dots`, `lines`, `triangles`, `hexagons`, `blobs`, `glyphs`, and `fractal`.
 - `size` is bounded by the backend between `256` and `1024`.
 - `png_base64` is returned as a complete data URL, ready for direct download handling in the frontend.
+- `validation` is computed from the actual rendered output, not just from request-time heuristics.
+- `simulations` currently cover baseline decode, blur, distance reconstruction, and low-light degradation.
+- `corrections_applied` records when the engine falls back to a more conservative render bias to preserve scan reliability.
 
 ### `GET /health`
 
@@ -234,7 +261,8 @@ bash scripts/run-test-battery.sh
 The end-to-end suite validates:
 
 - `GET /health` and `POST /generate` across every supported renderer style
-- SVG plus PNG export contract stability
+- SVG, PNG, and reliability contract stability
+- Reliability telemetry visibility in the frontend preview
 - Light theme export button styling
 - Dark theme export button styling
 - Mobile preview containment and horizontal overflow regressions
@@ -317,7 +345,7 @@ bash scripts/capture-readme-screenshots.sh
 
 This regenerates the current desktop, tablet, compact tablet, mobile, collapsed-header, and dark/light theme screenshots inside `docs/images/`.
 
-The latest light-theme captures already include the refined export button overlay so the documentation matches the current UI behavior.
+The latest captures now also include the Phase 3 reliability panel so the documentation matches the current UI behavior.
 
 ## Additional Docs
 

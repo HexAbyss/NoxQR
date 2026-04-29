@@ -133,6 +133,37 @@ const COPY: Record<Locale, DemoCopy> = {
       actions: {
         export: "Exportar PNG",
       },
+      reliability: {
+        eyebrow: "Reliability engine",
+        title: "Confiabilidade apos o render.",
+        summary:
+          "Cada saida passa por score de contraste, distorcao, densidade, zona de silencio e simulacoes hostis antes de chegar ao preview.",
+        score: "Score",
+        risk: "Risco",
+        autoCorrection: "Auto-correcao",
+        correctionsTitle: "Correcoes aplicadas",
+        suggestionsTitle: "Sugestoes",
+        pass: "OK",
+        fail: "Falhou",
+        metrics: {
+          contrast: "Contraste",
+          distortion: "Estabilidade",
+          density: "Densidade",
+          quietZone: "Quiet zone",
+          simulations: "Simulacoes",
+        },
+        risks: {
+          low: "Baixo",
+          medium: "Medio",
+          high: "Alto",
+        },
+        simulations: {
+          baseline: "Base",
+          blur: "Blur",
+          distance: "Distancia",
+          lowLight: "Baixa luz",
+        },
+      },
     },
     footer: {
       label: "NOX",
@@ -252,6 +283,37 @@ const COPY: Record<Locale, DemoCopy> = {
       },
       actions: {
         export: "Export PNG",
+      },
+      reliability: {
+        eyebrow: "Reliability engine",
+        title: "Post-render scan confidence.",
+        summary:
+          "Every output is scored for contrast, distortion, density, quiet zone preservation, and hostile scan simulations before it reaches the preview.",
+        score: "Score",
+        risk: "Risk",
+        autoCorrection: "Auto-correction",
+        correctionsTitle: "Applied corrections",
+        suggestionsTitle: "Suggestions",
+        pass: "Pass",
+        fail: "Fail",
+        metrics: {
+          contrast: "Contrast",
+          distortion: "Stability",
+          density: "Density",
+          quietZone: "Quiet zone",
+          simulations: "Simulations",
+        },
+        risks: {
+          low: "Low",
+          medium: "Medium",
+          high: "High",
+        },
+        simulations: {
+          baseline: "Baseline",
+          blur: "Blur",
+          distance: "Distance",
+          lowLight: "Low light",
+        },
       },
     },
     footer: {

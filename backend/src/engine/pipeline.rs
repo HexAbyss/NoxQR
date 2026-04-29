@@ -8,7 +8,10 @@ use crate::{
     error::AppError,
     models::{request::GenerateRequest, response::GenerateResponse},
     render::{renderer_for, RenderOptions},
-    validation::{validate_generate_request, ValidatedGenerateRequest},
+    validation::{
+        assess_render_reliability, recommended_safety_bias, validate_generate_request,
+        ValidatedGenerateRequest,
+    },
 };
 
 const QUIET_ZONE: usize = 4;
@@ -29,27 +32,58 @@ impl QrEngine {
         request: ValidatedGenerateRequest,
     ) -> Result<GenerateResponse, AppError> {
         let renderer = renderer_for(request.style);
-        let rendered = renderer.render(
+        let mut rendered = renderer.render(matrix, &render_options(&request, 0.0));
+        let mut validation = assess_render_reliability(
             matrix,
-            &RenderOptions {
-                canvas_size: request.size,
-                quiet_zone: QUIET_ZONE,
-                foreground_hex: request.foreground.to_hex(),
-                background_hex: request.background.to_hex(),
-                foreground_rgba: request.foreground.to_rgba(),
-                background_rgba: if request.transparent_background {
-                    request.background.to_rgba_with_alpha(0)
-                } else {
-                    request.background.to_rgba()
-                },
-                transparent_background: request.transparent_background,
-            },
+            &rendered.image,
+            &request,
+            &rendered.telemetry,
+            QUIET_ZONE,
         );
+        let mut corrections_applied = Vec::new();
+
+        if let Some(safety_bias) = recommended_safety_bias(&validation) {
+            let safer_render = renderer.render(matrix, &render_options(&request, safety_bias));
+            let safer_validation = assess_render_reliability(
+                matrix,
+                &safer_render.image,
+                &request,
+                &safer_render.telemetry,
+                QUIET_ZONE,
+            );
+
+            if safer_validation.score >= validation.score {
+                corrections_applied.push(format!(
+                    "Applied a conservative render bias ({:.0}%) to improve scan reliability.",
+                    safety_bias * 100.0
+                ));
+                rendered = safer_render;
+                validation = safer_validation;
+            }
+        }
 
         Ok(GenerateResponse {
             svg: rendered.svg,
             png_base64: encode_png(rendered.image)?,
+            validation: validation.with_corrections(corrections_applied),
         })
+    }
+}
+
+fn render_options(request: &ValidatedGenerateRequest, safety_bias: f32) -> RenderOptions {
+    RenderOptions {
+        canvas_size: request.size,
+        quiet_zone: QUIET_ZONE,
+        foreground_hex: request.foreground.to_hex(),
+        background_hex: request.background.to_hex(),
+        foreground_rgba: request.foreground.to_rgba(),
+        background_rgba: if request.transparent_background {
+            request.background.to_rgba_with_alpha(0)
+        } else {
+            request.background.to_rgba()
+        },
+        transparent_background: request.transparent_background,
+        safety_bias,
     }
 }
 
@@ -137,6 +171,7 @@ mod tests {
 
         assert_eq!(response.svg.matches("<rect ").count(), expected_square_modules);
         assert!(response.svg.matches("<circle ").count() > 0);
+        assert!((0.0..=1.0).contains(&response.validation.score));
     }
 
     #[test]
@@ -157,6 +192,7 @@ mod tests {
 
             assert!(response.svg.starts_with("<svg"));
             assert!(response.png_base64.starts_with("data:image/png;base64,"));
+            assert!(response.validation.simulations.len() >= 4);
         }
     }
 

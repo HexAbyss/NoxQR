@@ -11,6 +11,7 @@ import { AlertTriangle, Download, ScanLine, Sparkles } from "lucide-react";
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 
+import type { ValidationRisk, ValidationResult } from "@/lib/api/qrClient";
 import { useQRStore } from "@/store/useQRStore";
 
 function sanitizeSvg(svg: string): string {
@@ -51,6 +52,32 @@ export interface QRPreviewCopy {
   actions: {
     export: string;
   };
+  reliability: {
+    eyebrow: string;
+    title: string;
+    summary: string;
+    score: string;
+    risk: string;
+    autoCorrection: string;
+    correctionsTitle: string;
+    suggestionsTitle: string;
+    pass: string;
+    fail: string;
+    metrics: {
+      contrast: string;
+      distortion: string;
+      density: string;
+      quietZone: string;
+      simulations: string;
+    };
+    risks: Record<ValidationRisk, string>;
+    simulations: {
+      baseline: string;
+      blur: string;
+      distance: string;
+      lowLight: string;
+    };
+  };
 }
 
 interface QRPreviewProps {
@@ -58,11 +85,39 @@ interface QRPreviewProps {
   styleLabel: string;
 }
 
+function formatPercent(value: number) {
+  return `${Math.round(value * 100)}%`;
+}
+
+function formatRatio(value: number) {
+  return `${value.toFixed(2)}:1`;
+}
+
+function simulationLabel(copy: QRPreviewCopy, name: string) {
+  switch (name) {
+    case "baseline":
+      return copy.reliability.simulations.baseline;
+    case "blur":
+      return copy.reliability.simulations.blur;
+    case "distance":
+      return copy.reliability.simulations.distance;
+    case "low_light":
+      return copy.reliability.simulations.lowLight;
+    default:
+      return name;
+  }
+}
+
+function reliabilityStatus(validation: ValidationResult, copy: QRPreviewCopy) {
+  return `${copy.reliability.score}: ${formatPercent(validation.score)} · ${copy.reliability.risks[validation.risk]}`;
+}
+
 export function QRPreview({ copy, styleLabel }: Readonly<QRPreviewProps>) {
-  const { svg, pngBase64, loading, error, data, size, color, background, transparent_background } = useQRStore(
+  const { svg, pngBase64, validation, loading, error, data, size, color, background, transparent_background } = useQRStore(
     useShallow((state) => ({
       svg: state.svg,
       pngBase64: state.pngBase64,
+      validation: state.validation,
       loading: state.loading,
       error: state.error,
       data: state.data,
@@ -93,6 +148,8 @@ export function QRPreview({ copy, styleLabel }: Readonly<QRPreviewProps>) {
 
     return pngBase64.startsWith("data:image/") ? pngBase64 : `data:image/png;base64,${pngBase64}`;
   }, [pngBase64]);
+  const reliabilityVisible = !loading && !error && !!safeSvg && !!validation;
+  const successfulSimulations = validation?.simulations.filter((simulation) => simulation.passed).length ?? 0;
 
   return (
     <motion.section
@@ -199,9 +256,95 @@ export function QRPreview({ copy, styleLabel }: Readonly<QRPreviewProps>) {
         </AnimatePresence>
       </div>
 
+      {reliabilityVisible && validation ? (
+        <motion.section
+          className="reliability-panel"
+          data-risk={validation.risk}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="reliability-panel__head">
+            <div className="reliability-panel__copy">
+              <p className="reliability-panel__eyebrow">{copy.reliability.eyebrow}</p>
+              <h3 className="reliability-panel__title">{copy.reliability.title}</h3>
+              <p className="panel-copy">{copy.reliability.summary}</p>
+            </div>
+
+            <div className="reliability-score" data-risk={validation.risk}>
+              <span className="reliability-score__label">{copy.reliability.score}</span>
+              <strong className="reliability-score__value">{formatPercent(validation.score)}</strong>
+              <span className="reliability-score__risk">
+                {copy.reliability.risk}: {copy.reliability.risks[validation.risk]}
+              </span>
+            </div>
+          </div>
+
+          <div className="reliability-meter" aria-hidden="true">
+            <span style={{ width: formatPercent(validation.score) }} />
+          </div>
+
+          <div className="reliability-metrics">
+            <div className="reliability-metric">
+              <span className="reliability-metric__label">{copy.reliability.metrics.contrast}</span>
+              <strong className="reliability-metric__value">{formatRatio(validation.metrics.contrastRatio)}</strong>
+            </div>
+            <div className="reliability-metric">
+              <span className="reliability-metric__label">{copy.reliability.metrics.distortion}</span>
+              <strong className="reliability-metric__value">{formatPercent(1 - validation.metrics.distortion)}</strong>
+            </div>
+            <div className="reliability-metric">
+              <span className="reliability-metric__label">{copy.reliability.metrics.density}</span>
+              <strong className="reliability-metric__value">{formatPercent(validation.metrics.density)}</strong>
+            </div>
+            <div className="reliability-metric">
+              <span className="reliability-metric__label">{copy.reliability.metrics.quietZone}</span>
+              <strong className="reliability-metric__value">{formatPercent(validation.metrics.quietZoneIntegrity)}</strong>
+            </div>
+            <div className="reliability-metric">
+              <span className="reliability-metric__label">{copy.reliability.metrics.simulations}</span>
+              <strong className="reliability-metric__value">
+                {successfulSimulations}/{validation.simulations.length}
+              </strong>
+            </div>
+          </div>
+
+          <div className="reliability-simulations">
+            {validation.simulations.map((simulation) => (
+              <span key={simulation.name} className="reliability-simulation" data-passed={simulation.passed}>
+                {simulationLabel(copy, simulation.name)}: {simulation.passed ? copy.reliability.pass : copy.reliability.fail}
+              </span>
+            ))}
+          </div>
+
+          {validation.correctionsApplied.length > 0 ? (
+            <div className="reliability-notes">
+              <p className="reliability-notes__title">{copy.reliability.correctionsTitle}</p>
+              {validation.correctionsApplied.map((item) => (
+                <p key={item} className="reliability-notes__item">
+                  {item}
+                </p>
+              ))}
+            </div>
+          ) : null}
+
+          {validation.suggestions.length > 0 ? (
+            <div className="reliability-notes">
+              <p className="reliability-notes__title">{copy.reliability.suggestionsTitle}</p>
+              {validation.suggestions.map((item) => (
+                <p key={item} className="reliability-notes__item">
+                  {item}
+                </p>
+              ))}
+            </div>
+          ) : null}
+        </motion.section>
+      ) : null}
+
       <div className="status-row">
         <span className="status-chip">{copy.status.renderer}</span>
         <span className="status-chip">{copy.status.sanitization}</span>
+        {validation ? <span className="status-chip">{reliabilityStatus(validation, copy)}</span> : null}
         <span className="status-chip">
           <Sparkles size={14} />
           {copy.status.palette}: {color} / {backgroundLabel}

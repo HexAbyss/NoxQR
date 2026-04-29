@@ -46,7 +46,7 @@ async function openStudio(page, { locale = "en", theme = "dark" } = {}) {
   await waitForPreview(page);
 }
 
-test("backend health and phase 2 render contract stay stable", async ({ request }) => {
+test("backend health and phase 3 render contract stay stable", async ({ request }) => {
   const healthResponse = await request.get(`${BACKEND_URL}/health`);
   expect(healthResponse.ok()).toBeTruthy();
   await expect(healthResponse.json()).resolves.toEqual({ status: "ok" });
@@ -69,7 +69,29 @@ test("backend health and phase 2 render contract stay stable", async ({ request 
     expect(body.svg).toContain("<svg");
     expect(body.svg).toContain("Generated artistic QR code");
     expect(body.png_base64).toMatch(/^data:image\/png;base64,/);
+    expect(body.validation).toBeTruthy();
+    expect(body.validation.score).toBeGreaterThan(0);
+    expect(body.validation.score).toBeLessThanOrEqual(1);
+    expect(["low", "medium", "high"]).toContain(body.validation.risk);
+    expect(body.validation.metrics).toMatchObject({
+      contrast_ratio: expect.any(Number),
+      distortion: expect.any(Number),
+      density: expect.any(Number),
+      quiet_zone_integrity: expect.any(Number),
+      simulation_pass_rate: expect.any(Number),
+    });
+    expect(body.validation.simulations).toHaveLength(4);
   }
+});
+
+test("preview exposes reliability telemetry from the backend", async ({ page }) => {
+  await openStudio(page, { locale: "en", theme: "dark" });
+
+  const reliabilityPanel = page.locator(".reliability-panel");
+  await expect(reliabilityPanel).toBeVisible();
+  await expect(reliabilityPanel).toContainText("Post-render scan confidence");
+  await expect(reliabilityPanel.locator(".reliability-score__value")).toContainText(/\d+%/);
+  await expect(reliabilityPanel.locator(".reliability-simulation")).toHaveCount(4);
 });
 
 test("light theme export button keeps a light overlay and exposes a PNG download", async ({ page }) => {

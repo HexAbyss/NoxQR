@@ -2,11 +2,12 @@
 
 ## Scope
 
-This document describes the implemented engine layers through Phase 2.
+This document describes the implemented engine layers through Phase 3.
 
 - Phase 0: structural foundation
 - Phase 1: core encoding control
 - Phase 2: rendering engine
+- Phase 3: reliability engine
 
 The current implementation preserves the existing public API while making the QR engine structurally aware and visually extensible.
 
@@ -21,6 +22,8 @@ The backend is split into stable responsibilities:
 - `core`: QR structure and parser logic
 - `render`: renderer abstraction plus concrete styles
 - `validation`: request guardrails and safety checks
+
+From Phase 3 onward, `validation` also owns post-render reliability analysis.
 
 ### Phase 1
 
@@ -66,6 +69,29 @@ Each renderer produces:
 - PNG raster output through the same engine path
 
 This keeps SVG and PNG aligned and makes style expansion cheaper.
+
+### Phase 3
+
+Reliability is now measured from the actual rendered output before the API response is finalized.
+
+Current validation result includes:
+
+- score from `0.0` to `1.0`
+- risk bucket: `low`, `medium`, or `high`
+- core metrics for contrast, distortion, density, and quiet zone integrity
+- decode simulation results across hostile scan conditions
+- suggestions and any auto-corrections applied by the engine
+
+Current simulation set:
+
+- `baseline`
+- `blur`
+- `distance`
+- `low_light`
+
+The backend composites transparent output against the chosen background, converts the image to grayscale, and tries to decode each simulation through `rqrr`.
+
+If the score falls below the correction threshold, the engine re-renders with a conservative safety bias that reduces transform freedom before returning the final response.
 
 ## Strict vs Expressive Rendering
 
@@ -128,12 +154,14 @@ Implemented now:
 - role-aware rendering
 - multi-style rendering engine
 - shared SVG and PNG generation path
+- post-render reliability scoring
+- hostile scan simulation and decode verification
+- conservative auto-correction with suggestion output
 
 Not implemented yet:
 
-- scan reliability scoring
-- distortion simulation
-- auto-correction logic
 - smart gradients exposed as first-class renderer options
+
+Future work can still deepen the reliability layer with more simulation types, adaptive color correction, and style-specific safety presets.
 
 Those belong to later phases in the roadmap.
