@@ -176,7 +176,7 @@ test("transparent mode stays on by default and artistic inputs re-render without
 test("studio boots into the new step flow with frame controls active", async ({ page }) => {
   await openStudio(page, { locale: "en", theme: "dark" });
 
-  await expect(page.locator(".studio-step")).toHaveCount(2);
+  await expect(page.locator(".studio-step")).toHaveCount(3);
   await expect(page.locator(".content-type-tile[data-active='true']")).toContainText(/^Link$/i);
   await expect(page.locator(".studio-tab")).toHaveCount(6);
   await expect(page.locator(".studio-tab[data-active='true']")).toContainText(/^Frame$/i);

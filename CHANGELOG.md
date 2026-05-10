@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [v0.4.1] - 2026-05-10
+
+- fix(.github): update project files and related changes
+- 2 files changed, 3 insertions(+), 3 deletions(-)
+
 ## [v0.4.0] - 2026-05-10
 
 - feat(docs): update project files and related changes
