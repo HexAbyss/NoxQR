@@ -7,21 +7,28 @@
 [![Backend: Rust + Axum](https://img.shields.io/badge/backend-Rust%20%2B%20Axum-0F172A?style=flat-square)](backend/Cargo.toml)
 [![Runtime: Docker Compose](https://img.shields.io/badge/runtime-Docker%20Compose-0B1220?style=flat-square)](docker-compose.yml)
 
-NOX is an open-source visual encoding engine for art-directed QR systems.
+NOX is an open-source QR design studio for branded, art-directed QR codes.
 
-The project pairs a polished Next.js studio with a dedicated Rust renderer so creative direction stays in the interface while structural rendering, output discipline, and machine readability remain inside the engine boundary.
+The project combines a polished Next.js interface with a dedicated renderer so content, styling, preview, and export stay fast and consistent inside one focused product surface.
 
 ![NOX studio overview](docs/images/nox-studio-overview.svg)
 
 ## Highlights
 
+- Step-based QR studio with a content-type strip, automatic payload assembly, and visual-first authoring instead of text-heavy collapsible forms.
 - Art-directed QR studio with eight render styles: `square`, `dots`, `lines`, `triangles`, `hexagons`, `blobs`, `glyphs`, and `fractal`.
+- Guided visual design tabs for `Frame`, `Shape`, `Border`, `Logo`, `Camouflage`, and `Presets`, using the same compact tile language across the studio.
 - Rust backend split into `api`, `engine`, `core`, `render`, and `validation` responsibilities.
 - Phase 1 matrix modeling with per-module roles and importance scoring, so the QR is treated as structure rather than a flat bitmap.
 - Phase 2 renderer abstraction with controlled module transforms, expressive primitives, and strict preservation of reading patterns.
 - Phase 3 reliability engine with post-render scoring, hostile scan simulations, and conservative auto-correction before the response is returned.
-- Transparent or solid canvas backgrounds with bounded sizes from `256px` to `1024px`.
+- Phase 4 artistic system with curated presets, image-guided texture mapping, camouflaged data modules, and protected center-logo embedding.
+- Phase 5 perception layer with carrier-image upload, near-invisible and guide-driven QR modes, plus reliability feedback surfaced back to the studio.
+- Frontend composition layer for decorative frames, finder-eye overlays, gradients, and PNG export parity without widening the backend contract.
+- Transparent or solid canvas backgrounds with bounded sizes from `256px` to `1024px`, now defaulting to transparent on every fresh page entry.
 - Dark and light themes, PT-BR and EN localization, and responsive behavior across desktop, tablet, and mobile ranges.
+- Inline upload handling for carrier images and center logos, plus a preview loader that replaces stale QR output while a new render is in flight.
+- Standardized logo and camouflage menus with clearer upload, preset, and adjustment grouping.
 - Automated coverage across backend unit tests, frontend typecheck, and full-stack regression for backend contract, reliability telemetry, export flow, theme behavior, and mobile layout stability.
 - Reproducible documentation assets generated from the running product surface through Playwright.
 
@@ -60,27 +67,29 @@ All screenshots below are captured from the local running application and regene
   <img src="docs/images/nox-mobile-light.png" alt="NOX mobile light theme" width="24%" />
 </p>
 
-### Collapsed Header State
+### Design Detail States
 
 <p align="center">
-  <img src="docs/images/nox-desktop-collapsed-dark.png" alt="NOX collapsed desktop header in dark theme" width="49%" />
-  <img src="docs/images/nox-desktop-collapsed-light.png" alt="NOX collapsed desktop header in light theme" width="49%" />
+  <img src="docs/images/nox-desktop-collapsed-dark.png" alt="NOX camouflage design state in dark theme" width="49%" />
+  <img src="docs/images/nox-desktop-collapsed-light.png" alt="NOX logo design state in light theme" width="49%" />
 </p>
 
 ## Product Model
 
-NOX treats QR generation as a visual system rather than a form utility.
+NOX treats QR generation as a visual product surface rather than a plain form utility.
 
-The frontend owns authoring, localization, theme state, motion, and presentation. The backend owns the render contract, QR module geometry, SVG generation, raster export, and runtime endpoints. That split keeps the public codebase readable while still making room for future renderer growth.
+The interface is centered on content, styling, preview, and export so users can build a QR code quickly without navigating technical implementation details.
 
 ## Engine Status
 
-NOX currently ships the first four implementation layers of the roadmap:
+NOX currently ships the first six implementation layers of the roadmap:
 
 - Phase 0: structural backend split into `api`, `engine`, `core`, `render`, and `validation`
 - Phase 1: matrix parsing into semantic module roles plus importance scoring for controlled styling
 - Phase 2: modular renderer engine with multiple primitives and local geometric transforms
 - Phase 3: reliability analysis with contrast, distortion, density, quiet zone, and scan simulation feedback
+- Phase 4: artistic presets, image-guided QR surfacing, camouflaged render treatment, and smart logo embedding
+- Phase 5: perception modes, carrier-image guidance, phase-aware frontend controls, and runtime reliability reporting for aggressive artistic outputs
 
 For a deeper technical breakdown, see [docs/engine-overview.md](docs/engine-overview.md) and [docs/testing.md](docs/testing.md).
 
@@ -97,7 +106,7 @@ flowchart LR
 ```
 
 - [frontend/](frontend) contains the studio UI, motion system, API client, and persisted authoring preferences.
-- [backend/](backend) contains the Phase 0-3 engine: request handlers in `api`, orchestration in `engine`, QR structure logic in `core`, renderer primitives and styles in `render`, and guardrails plus reliability scoring in `validation`.
+- [backend/](backend) contains the Phase 0-4 engine: request handlers in `api`, orchestration in `engine`, QR structure logic in `core`, renderer primitives and styles in `render`, and guardrails plus reliability scoring in `validation`.
 - [tests/e2e/regression.spec.mjs](tests/e2e/regression.spec.mjs) exercises the live stack through Playwright and HTTP smoke checks.
 - [scripts/run-backend-unit-tests.sh](scripts/run-backend-unit-tests.sh) runs Rust unit tests in a disposable container, even when `cargo` is not installed locally.
 - [scripts/run-frontend-typecheck.sh](scripts/run-frontend-typecheck.sh) validates the frontend contract in an isolated Node container.
@@ -110,10 +119,13 @@ flowchart LR
 | Area | Current behavior |
 | --- | --- |
 | Rendering styles | `square`, `dots`, `lines`, `triangles`, `hexagons`, `blobs`, `glyphs`, `fractal` |
-| Outputs | Injected SVG preview and downloadable PNG export |
+| Art direction | `manual`, `neon`, `ink`, `wireframe`, `cyberpunk`, `minimal`, and `organic` presets with camouflage, center logo, carrier-image upload, and perception modes `off`, `near_invisible`, `frequency`, `negative`, `encrypted`, `multi_layer` |
+| Content authoring | `link`, `text`, `email`, `call`, `sms`, `vcard`, `whatsapp`, `wifi`, `app`, `event`, `barcode_2d` |
+| Visual composition | Step-based `Frame`, `Shape`, `Border`, `Logo`, `Camouflage`, and `Presets` tabs with frame presets, finder styles, upload-driven art direction, and logo presets |
+| Outputs | Live preview and downloadable PNG export |
 | Reliability | Score, risk, simulation results, suggestions, and conservative auto-correction |
 | Canvas | Solid or transparent background, constrained to `256..1024` |
-| Interaction | Debounced live preview plus explicit generate action |
+| Interaction | Debounced live preview, stale-preview loading gate, explicit generate action, icon-first selection grids, and step-based studio flow |
 | Localization | `pt-BR` and `en` |
 | Themes | `dark` and `light` |
 | Responsive header | Desktop `>= 1121`, tablet wide `721..1120`, tablet compact `561..720`, mobile `< 561` |
@@ -132,7 +144,14 @@ Request:
   "color": "#00FFAA",
   "background": "#0D0D0D",
   "transparent_background": true,
-  "size": 512
+  "size": 512,
+  "preset": "neon",
+  "camouflage": 0.18,
+  "perception_mode": "near_invisible",
+  "perception_strength": 0.58,
+  "reference_image": "data:image/png;base64,...",
+  "logo_image": "data:image/png;base64,...",
+  "logo_scale": 0.22
 }
 ```
 
@@ -168,6 +187,14 @@ Response:
 Notes:
 
 - `style` supports `square`, `dots`, `lines`, `triangles`, `hexagons`, `blobs`, `glyphs`, and `fractal`.
+- `preset` supports `manual`, `neon`, `ink`, `wireframe`, `cyberpunk`, `minimal`, and `organic`.
+- `camouflage` is normalized by the backend between `0.0` and `1.0`.
+- `perception_mode` supports `off`, `near_invisible`, `frequency`, `negative`, `encrypted`, and `multi_layer`.
+- `perception_strength` is normalized by the backend between `0.0` and `1.0`.
+- `reference_image` and `logo_image` accept PNG, JPEG, or WebP data URLs up to `2MB` and `2048px` per side.
+- `reference_image` acts as a carrier image for the perception layer, and the frontend automatically falls back to `off` when no carrier image is present.
+- `logo_scale` is enforced between `0.14` and `0.30` when a logo is embedded.
+- The frontend translates backend validation and reliability text at runtime so PT-BR and EN stay aligned without changing the API shape.
 - `size` is bounded by the backend between `256` and `1024`.
 - `png_base64` is returned as a complete data URL, ready for direct download handling in the frontend.
 - `validation` is computed from the actual rendered output, not just from request-time heuristics.
@@ -323,9 +350,7 @@ GitHub Actions runs backend unit tests and full-stack regression through [.githu
 │   ├── run-backend-unit-tests.sh
 │   ├── run-frontend-typecheck.sh
 │   ├── run-regression-tests.sh
-│   ├── run-test-battery.sh
-│   ├── capture-readme-screenshots.sh
-│   └── capture-readme-screenshots.mjs
+│   └── run-test-battery.sh
 ├── tests/
 │   └── e2e/
 │       └── regression.spec.mjs
@@ -343,9 +368,9 @@ docker pull mcr.microsoft.com/playwright:v1.53.0-noble
 bash scripts/capture-readme-screenshots.sh
 ```
 
-This regenerates the current desktop, tablet, compact tablet, mobile, collapsed-header, and dark/light theme screenshots inside `docs/images/`.
+This regenerates the current desktop, tablet, compact tablet, mobile, and design-detail screenshots inside `docs/images/`.
 
-The latest captures now also include the Phase 3 reliability panel so the documentation matches the current UI behavior.
+The latest captures also reflect the new visual studio states, including frame/finder styling and logo-library views, so the documentation matches the current UI behavior.
 
 ## Additional Docs
 

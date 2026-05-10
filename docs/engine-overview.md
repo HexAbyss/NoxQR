@@ -2,12 +2,13 @@
 
 ## Scope
 
-This document describes the implemented engine layers through Phase 3.
+This document describes the implemented engine layers through Phase 4.
 
 - Phase 0: structural foundation
 - Phase 1: core encoding control
 - Phase 2: rendering engine
 - Phase 3: reliability engine
+- Phase 4: artistic rendering system
 
 The current implementation preserves the existing public API while making the QR engine structurally aware and visually extensible.
 
@@ -24,6 +25,8 @@ The backend is split into stable responsibilities:
 - `validation`: request guardrails and safety checks
 
 From Phase 3 onward, `validation` also owns post-render reliability analysis.
+
+From Phase 4 onward, `render` also owns image-guided texture input validation, artistic preset shaping, and protected logo placement.
 
 ### Phase 1
 
@@ -93,6 +96,28 @@ The backend composites transparent output against the chosen background, convert
 
 If the score falls below the correction threshold, the engine re-renders with a conservative safety bias that reduces transform freedom before returning the final response.
 
+### Phase 4
+
+The artistic layer adds a second pass of render shaping without changing the public endpoint shape.
+
+Current Phase 4 inputs:
+
+- `preset`
+- `camouflage`
+- `reference_image`
+- `logo_image`
+- `logo_scale`
+
+Current Phase 4 responsibilities:
+
+- preset-specific palette and texture bias
+- image-guided background surfacing from reference luminance
+- camouflage adjustments limited to data modules
+- protected center-logo reservation and compositing in SVG and PNG output
+- payload validation for reference and logo image assets before rendering starts
+
+This keeps finder and alignment geometry protected while allowing artistic variation to stay concentrated on modules that can absorb it safely.
+
 ## Strict vs Expressive Rendering
 
 The engine deliberately distinguishes between modules that must remain rigid and modules that can absorb style.
@@ -157,6 +182,7 @@ Implemented now:
 - post-render reliability scoring
 - hostile scan simulation and decode verification
 - conservative auto-correction with suggestion output
+- artistic presets, reference-image surfacing, camouflage shaping, and protected logo embedding
 
 Not implemented yet:
 

@@ -5,6 +5,11 @@
  */
 
 export type QRStyle = "square" | "dots" | "lines" | "triangles" | "hexagons" | "blobs" | "glyphs" | "fractal";
+export type QRArtisticPreset = "manual" | "neon" | "ink" | "wireframe" | "cyberpunk" | "minimal" | "organic";
+export type QRPerceptionMode = "off" | "near_invisible" | "frequency" | "negative" | "encrypted" | "multi_layer";
+export type QRFrameStyle = "none" | "rounded" | "card" | "circle" | "phone" | "hanger" | "ticket" | "ribbon";
+export type QRFinderBorderStyle = "square" | "rounded" | "circle" | "leaf" | "bubble" | "focus" | "cut" | "soft_square";
+export type QRFinderCenterStyle = "square" | "rounded" | "circle" | "leaf" | "burst" | "star" | "diamond" | "cross";
 
 export interface GenerateQRPayload {
   data: string;
@@ -13,6 +18,19 @@ export interface GenerateQRPayload {
   background: string;
   transparent_background: boolean;
   size: number;
+  frame_style: QRFrameStyle;
+  finder_border_style: QRFinderBorderStyle;
+  finder_center_style: QRFinderCenterStyle;
+  border_color: string;
+  center_color: string;
+  gradient_enabled: boolean;
+  preset: QRArtisticPreset;
+  camouflage: number;
+  perception_mode: QRPerceptionMode;
+  perception_strength: number;
+  reference_image?: string | null;
+  logo_image?: string | null;
+  logo_scale: number;
 }
 
 export type ValidationRisk = "low" | "medium" | "high";

@@ -5,6 +5,7 @@ backend/target/
 test-results/
 /.env
 /push.sh
+.ideas
 pendências.md
 capture-readme-screenshots.mjs
 capture-readme-screenshots.sh

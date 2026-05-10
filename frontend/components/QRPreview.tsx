@@ -7,12 +7,12 @@
  */
 
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertTriangle, Download, ScanLine, Sparkles } from "lucide-react";
+import { AlertTriangle, Download, ScanLine } from "lucide-react";
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 
 import type { ValidationRisk, ValidationResult } from "@/lib/api/qrClient";
-import { useQRStore } from "@/store/useQRStore";
+import { buildGeneratePayload, buildRequestKey, useQRStore, type QRPerceptionMode } from "@/store/useQRStore";
 
 function sanitizeSvg(svg: string): string {
   const trimmed = svg.trim();
@@ -40,15 +40,22 @@ export interface QRPreviewCopy {
   successCaption: string;
   meta: {
     style: string;
+    preset: string;
     canvas: string;
     payload: string;
   };
   status: {
     renderer: string;
     sanitization: string;
+    preset: string;
+    perception: string;
+    camouflage: string;
+    reference: string;
+    logo: string;
     palette: string;
     transparent: string;
   };
+  perceptionModes: Record<QRPerceptionMode, string>;
   actions: {
     export: string;
   };
@@ -83,6 +90,7 @@ export interface QRPreviewCopy {
 interface QRPreviewProps {
   copy: QRPreviewCopy;
   styleLabel: string;
+  presetLabel: string;
 }
 
 function formatPercent(value: number) {
@@ -108,12 +116,35 @@ function simulationLabel(copy: QRPreviewCopy, name: string) {
   }
 }
 
-function reliabilityStatus(validation: ValidationResult, copy: QRPreviewCopy) {
-  return `${copy.reliability.score}: ${formatPercent(validation.score)} · ${copy.reliability.risks[validation.risk]}`;
-}
-
-export function QRPreview({ copy, styleLabel }: Readonly<QRPreviewProps>) {
-  const { svg, pngBase64, validation, loading, error, data, size, color, background, transparent_background } = useQRStore(
+export function QRPreview({ copy, styleLabel, presetLabel }: Readonly<QRPreviewProps>) {
+  const {
+    svg,
+    pngBase64,
+    validation,
+    loading,
+    error,
+    data,
+    size,
+    color,
+    background,
+    transparent_background,
+    camouflage,
+    perception_mode,
+    perception_strength,
+    reference_image,
+    logo_image,
+    logo_scale,
+    style,
+    preset,
+    livePreview,
+    lastGeneratedKey,
+    frameStyle,
+    finderBorderStyle,
+    finderCenterStyle,
+    borderColor,
+    centerColor,
+    gradientEnabled,
+  } = useQRStore(
     useShallow((state) => ({
       svg: state.svg,
       pngBase64: state.pngBase64,
@@ -125,11 +156,75 @@ export function QRPreview({ copy, styleLabel }: Readonly<QRPreviewProps>) {
       color: state.color,
       background: state.background,
       transparent_background: state.transparent_background,
+      camouflage: state.camouflage,
+      perception_mode: state.perception_mode,
+      perception_strength: state.perception_strength,
+      reference_image: state.reference_image,
+      logo_image: state.logo_image,
+      logo_scale: state.logo_scale,
+      style: state.style,
+      preset: state.preset,
+      livePreview: state.livePreview,
+      lastGeneratedKey: state.lastGeneratedKey,
+      frameStyle: state.frameStyle,
+      finderBorderStyle: state.finderBorderStyle,
+      finderCenterStyle: state.finderCenterStyle,
+      borderColor: state.borderColor,
+      centerColor: state.centerColor,
+      gradientEnabled: state.gradientEnabled,
     })),
   );
 
   const safeSvg = sanitizeSvg(svg);
-  const backgroundLabel = transparent_background ? copy.status.transparent : background;
+  const currentRequestKey = useMemo(
+    () =>
+      buildRequestKey(
+        buildGeneratePayload({
+          data,
+          style,
+          color,
+          background,
+          transparent_background,
+          size,
+          frameStyle,
+          finderBorderStyle,
+          finderCenterStyle,
+          borderColor,
+          centerColor,
+          gradientEnabled,
+          preset,
+          camouflage,
+          perception_mode,
+          perception_strength,
+          reference_image,
+          logo_image,
+          logo_scale,
+        }),
+      ),
+    [
+      background,
+      borderColor,
+      camouflage,
+      centerColor,
+      color,
+      data,
+      finderBorderStyle,
+      finderCenterStyle,
+      frameStyle,
+      gradientEnabled,
+      logo_image,
+      logo_scale,
+      perception_mode,
+      perception_strength,
+      preset,
+      reference_image,
+      size,
+      style,
+      transparent_background,
+    ],
+  );
+  const pendingPreview = Boolean(data.trim()) && livePreview && currentRequestKey !== lastGeneratedKey;
+  const showLoadingState = loading || (pendingPreview && !error);
   const downloadFileName = useMemo(() => {
     const baseName =
       data
@@ -148,7 +243,8 @@ export function QRPreview({ copy, styleLabel }: Readonly<QRPreviewProps>) {
 
     return pngBase64.startsWith("data:image/") ? pngBase64 : `data:image/png;base64,${pngBase64}`;
   }, [pngBase64]);
-  const reliabilityVisible = !loading && !error && !!safeSvg && !!validation;
+  const previewReady = Boolean(downloadUrl || safeSvg);
+  const reliabilityVisible = !showLoadingState && !error && previewReady && !!validation;
   const successfulSimulations = validation?.simulations.filter((simulation) => simulation.passed).length ?? 0;
 
   return (
@@ -158,16 +254,16 @@ export function QRPreview({ copy, styleLabel }: Readonly<QRPreviewProps>) {
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div className="panel-head">
-        <p className="panel-label">{copy.eyebrow}</p>
-        <h2 className="panel-title">{copy.title}</h2>
-        <p className="panel-copy">{copy.summary}</p>
-      </div>
+      <p className="panel-label panel-label--wide panel-label--preview">{copy.eyebrow}</p>
 
       <div className="meta-strip">
         <div className="meta-item">
           <span>{copy.meta.style}</span>
           <strong>{styleLabel}</strong>
+        </div>
+        <div className="meta-item">
+          <span>{copy.meta.preset}</span>
+          <strong>{presetLabel}</strong>
         </div>
         <div className="meta-item">
           <span>{copy.meta.canvas}</span>
@@ -183,20 +279,23 @@ export function QRPreview({ copy, styleLabel }: Readonly<QRPreviewProps>) {
         <div className="preview-backdrop" />
 
         <AnimatePresence mode="wait">
-          {loading ? (
+          {showLoadingState ? (
             <motion.div
               key="loading"
-              className="preview-state"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
+              className="preview-canvas preview-canvas--loading"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="spinner-shell">
-                <div className="spinner" />
-              </div>
-              <div>
-                <h3 className="preview-title">{copy.loadingTitle}</h3>
-                <p className="panel-copy">{copy.loadingBody}</p>
+              <div className="preview-state">
+                <div className="spinner-shell">
+                  <div className="spinner" />
+                </div>
+                <div>
+                  <h3 className="preview-title">{copy.loadingTitle}</h3>
+                  <p className="panel-copy">{copy.loadingBody}</p>
+                </div>
               </div>
             </motion.div>
           ) : error ? (
@@ -215,9 +314,9 @@ export function QRPreview({ copy, styleLabel }: Readonly<QRPreviewProps>) {
                 <p className="panel-copy">{error}</p>
               </div>
             </motion.div>
-          ) : safeSvg ? (
+          ) : previewReady ? (
             <motion.div
-              key={`${styleLabel}-${size}-${safeSvg.length}`}
+              key={lastGeneratedKey ?? `${size}-${downloadUrl.length || safeSvg.length}`}
               className="preview-canvas"
               initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -233,8 +332,11 @@ export function QRPreview({ copy, styleLabel }: Readonly<QRPreviewProps>) {
                   </a>
                 </div>
               ) : null}
-              <div className="preview-canvas__svg" dangerouslySetInnerHTML={{ __html: safeSvg }} />
-              <p className="success-caption">{copy.successCaption}</p>
+              {downloadUrl ? (
+                <img className="preview-canvas__image" src={downloadUrl} alt="" />
+              ) : (
+                <div className="preview-canvas__svg" dangerouslySetInnerHTML={{ __html: safeSvg }} />
+              )}
             </motion.div>
           ) : (
             <motion.div
@@ -264,92 +366,72 @@ export function QRPreview({ copy, styleLabel }: Readonly<QRPreviewProps>) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="reliability-panel__head">
-            <div className="reliability-panel__copy">
-              <p className="reliability-panel__eyebrow">{copy.reliability.eyebrow}</p>
-              <h3 className="reliability-panel__title">{copy.reliability.title}</h3>
-              <p className="panel-copy">{copy.reliability.summary}</p>
+          <div className="reliability-panel__overview">
+            <div className="reliability-panel__head">
+              <div className="reliability-panel__copy">
+                <p className="reliability-panel__eyebrow">{copy.reliability.eyebrow}</p>
+                <h3 className="reliability-panel__title">{copy.reliability.title}</h3>
+                <p className="panel-copy">{copy.reliability.summary}</p>
+              </div>
+
+              <div className="reliability-score" data-risk={validation.risk}>
+                <span className="reliability-score__label">{copy.reliability.score}</span>
+                <strong className="reliability-score__value">{formatPercent(validation.score)}</strong>
+                <span className="reliability-score__risk">
+                  {copy.reliability.risk}: {copy.reliability.risks[validation.risk]}
+                </span>
+              </div>
             </div>
 
-            <div className="reliability-score" data-risk={validation.risk}>
-              <span className="reliability-score__label">{copy.reliability.score}</span>
-              <strong className="reliability-score__value">{formatPercent(validation.score)}</strong>
-              <span className="reliability-score__risk">
-                {copy.reliability.risk}: {copy.reliability.risks[validation.risk]}
-              </span>
+            <div className="reliability-meter" aria-hidden="true">
+              <span style={{ width: formatPercent(validation.score) }} />
             </div>
+
           </div>
 
-          <div className="reliability-meter" aria-hidden="true">
-            <span style={{ width: formatPercent(validation.score) }} />
+          <div className="reliability-panel__support">
+            <div className="reliability-panel__notes reliability-panel__notes--metrics">
+              <p className="reliability-notes__title">{copy.reliability.score}</p>
+              <div className="reliability-metrics">
+                <div className="reliability-metric">
+                  <span className="reliability-metric__label">{copy.reliability.metrics.contrast}</span>
+                  <strong className="reliability-metric__value">{formatRatio(validation.metrics.contrastRatio)}</strong>
+                </div>
+                <div className="reliability-metric">
+                  <span className="reliability-metric__label">{copy.reliability.metrics.distortion}</span>
+                  <strong className="reliability-metric__value">{formatPercent(1 - validation.metrics.distortion)}</strong>
+                </div>
+                <div className="reliability-metric">
+                  <span className="reliability-metric__label">{copy.reliability.metrics.density}</span>
+                  <strong className="reliability-metric__value">{formatPercent(validation.metrics.density)}</strong>
+                </div>
+                <div className="reliability-metric">
+                  <span className="reliability-metric__label">{copy.reliability.metrics.quietZone}</span>
+                  <strong className="reliability-metric__value">{formatPercent(validation.metrics.quietZoneIntegrity)}</strong>
+                </div>
+                <div className="reliability-metric">
+                  <span className="reliability-metric__label">{copy.reliability.metrics.simulations}</span>
+                  <strong className="reliability-metric__value">
+                    {successfulSimulations}/{validation.simulations.length}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="reliability-panel__notes reliability-panel__notes--simulations">
+              <p className="reliability-notes__title">{copy.reliability.metrics.simulations}</p>
+              <div className="reliability-simulations">
+                {validation.simulations.map((simulation) => (
+                  <span key={simulation.name} className="reliability-simulation" data-passed={simulation.passed}>
+                    {simulationLabel(copy, simulation.name)}: {simulation.passed ? copy.reliability.pass : copy.reliability.fail}
+                  </span>
+                ))}
+              </div>
+            </div>
+
           </div>
-
-          <div className="reliability-metrics">
-            <div className="reliability-metric">
-              <span className="reliability-metric__label">{copy.reliability.metrics.contrast}</span>
-              <strong className="reliability-metric__value">{formatRatio(validation.metrics.contrastRatio)}</strong>
-            </div>
-            <div className="reliability-metric">
-              <span className="reliability-metric__label">{copy.reliability.metrics.distortion}</span>
-              <strong className="reliability-metric__value">{formatPercent(1 - validation.metrics.distortion)}</strong>
-            </div>
-            <div className="reliability-metric">
-              <span className="reliability-metric__label">{copy.reliability.metrics.density}</span>
-              <strong className="reliability-metric__value">{formatPercent(validation.metrics.density)}</strong>
-            </div>
-            <div className="reliability-metric">
-              <span className="reliability-metric__label">{copy.reliability.metrics.quietZone}</span>
-              <strong className="reliability-metric__value">{formatPercent(validation.metrics.quietZoneIntegrity)}</strong>
-            </div>
-            <div className="reliability-metric">
-              <span className="reliability-metric__label">{copy.reliability.metrics.simulations}</span>
-              <strong className="reliability-metric__value">
-                {successfulSimulations}/{validation.simulations.length}
-              </strong>
-            </div>
-          </div>
-
-          <div className="reliability-simulations">
-            {validation.simulations.map((simulation) => (
-              <span key={simulation.name} className="reliability-simulation" data-passed={simulation.passed}>
-                {simulationLabel(copy, simulation.name)}: {simulation.passed ? copy.reliability.pass : copy.reliability.fail}
-              </span>
-            ))}
-          </div>
-
-          {validation.correctionsApplied.length > 0 ? (
-            <div className="reliability-notes">
-              <p className="reliability-notes__title">{copy.reliability.correctionsTitle}</p>
-              {validation.correctionsApplied.map((item) => (
-                <p key={item} className="reliability-notes__item">
-                  {item}
-                </p>
-              ))}
-            </div>
-          ) : null}
-
-          {validation.suggestions.length > 0 ? (
-            <div className="reliability-notes">
-              <p className="reliability-notes__title">{copy.reliability.suggestionsTitle}</p>
-              {validation.suggestions.map((item) => (
-                <p key={item} className="reliability-notes__item">
-                  {item}
-                </p>
-              ))}
-            </div>
-          ) : null}
         </motion.section>
       ) : null}
-
-      <div className="status-row">
-        <span className="status-chip">{copy.status.renderer}</span>
-        <span className="status-chip">{copy.status.sanitization}</span>
-        {validation ? <span className="status-chip">{reliabilityStatus(validation, copy)}</span> : null}
-        <span className="status-chip">
-          <Sparkles size={14} />
-          {copy.status.palette}: {color} / {backgroundLabel}
-        </span>
-      </div>
     </motion.section>
   );
 }

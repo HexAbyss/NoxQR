@@ -8,9 +8,9 @@
   <rect x="48" y="48" width="1504" height="884" rx="40" fill="url(#surface)" stroke="#1B2632"/>
 
   <text x="100" y="134" fill="#00FFAA" font-size="17" font-family="Manrope, Arial, sans-serif" font-weight="800" letter-spacing="4">RESPONSIVE SURFACE MAP</text>
-  <text x="100" y="214" fill="#F7FBFF" font-size="68" font-family="Outfit, Arial, sans-serif" font-weight="800" letter-spacing="-3">One product surface, four viewport behaviors.</text>
-  <text x="100" y="272" fill="#C3D0DE" font-size="26" font-family="Manrope, Arial, sans-serif" font-weight="500">Desktop keeps the hero balanced. Tablet ranges progressively compress the mark, copy, and toggles.</text>
-  <text x="100" y="308" fill="#C3D0DE" font-size="26" font-family="Manrope, Arial, sans-serif" font-weight="500">Mobile reduces the header to three clean rows while the rest of the studio remains legible.</text>
+  <text x="100" y="214" fill="#F7FBFF" font-size="68" font-family="Outfit, Arial, sans-serif" font-weight="800" letter-spacing="-3">One studio, four viewport behaviors.</text>
+  <text x="100" y="272" fill="#C3D0DE" font-size="26" font-family="Manrope, Arial, sans-serif" font-weight="500">Desktop keeps the full authoring flow balanced. Tablet ranges compress the layout without losing hierarchy.</text>
+  <text x="100" y="308" fill="#C3D0DE" font-size="26" font-family="Manrope, Arial, sans-serif" font-weight="500">Mobile tightens the header and keeps the QR preview, tabs, and controls readable.</text>
 
   <g>
     <rect x="100" y="360" width="320" height="384" rx="30" fill="#0E151C" stroke="#1F2C37"/>
@@ -66,12 +66,12 @@
     </g>
     <text x="884" y="503" fill="#141B24" font-size="27" font-family="Outfit, Arial, sans-serif" font-weight="800">NOX</text>
     <rect x="954" y="486" width="90" height="34" rx="17" fill="#EDF3F7" stroke="#D7E1EB"/>
-    <text x="966" y="508" fill="#617486" font-size="11" font-family="Manrope, Arial, sans-serif" font-weight="700">summary</text>
+    <text x="967" y="508" fill="#617486" font-size="11" font-family="Manrope, Arial, sans-serif" font-weight="700">copy</text>
     <rect x="834" y="548" width="98" height="24" rx="12" fill="#EEF4F8" stroke="#D7E1EB"/>
     <rect x="942" y="548" width="98" height="24" rx="12" fill="#EEF4F8" stroke="#D7E1EB"/>
     <rect x="838" y="552" width="44" height="16" rx="8" fill="#00EFC7"/>
     <rect x="946" y="552" width="44" height="16" rx="8" fill="#8F8DFF"/>
-    <text x="812" y="648" fill="#C3D0DE" font-size="18" font-family="Manrope, Arial, sans-serif" font-weight="600">The mark stays left, title and summary share the row, and controls still sit side by side.</text>
+    <text x="812" y="648" fill="#C3D0DE" font-size="18" font-family="Manrope, Arial, sans-serif" font-weight="600">The mark stays left, the copy compresses cleanly, and the controls remain readable.</text>
   </g>
 
   <g>
@@ -107,7 +107,7 @@
     <rect x="1016" y="824" width="194" height="32" rx="16" fill="#111B23" stroke="#223340"/>
     <text x="1058" y="845" fill="#DDE8F4" font-size="14" font-family="Manrope, Arial, sans-serif" font-weight="700">Dark / Light themes</text>
     <rect x="1232" y="824" width="176" height="32" rx="16" fill="#111B23" stroke="#223340"/>
-    <text x="1274" y="845" fill="#DDE8F4" font-size="14" font-family="Manrope, Arial, sans-serif" font-weight="700">Rust engine core</text>
+    <text x="1258" y="845" fill="#DDE8F4" font-size="14" font-family="Manrope, Arial, sans-serif" font-weight="700">Compact design tabs</text>
   </g>
 
   <defs>

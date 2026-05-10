@@ -1,9 +1,14 @@
+import { fileURLToPath } from "node:url";
+
 import { expect, test } from "@playwright/test";
 
 const FRONTEND_URL = process.env.NOX_E2E_FRONTEND_URL ?? "http://127.0.0.1:3080";
 const BACKEND_URL = process.env.NOX_E2E_BACKEND_URL ?? "http://127.0.0.1:3081";
 const MOBILE_VIEWPORT = { width: 390, height: 844 };
 const STYLES = ["square", "dots", "lines", "triangles", "hexagons", "blobs", "glyphs", "fractal"];
+const VALID_UPLOAD_FIXTURE = fileURLToPath(
+  new URL("../../docs/images/nox-desktop-collapsed-light.png", import.meta.url),
+);
 
 function parseRgb(value) {
   const match = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
@@ -36,9 +41,37 @@ async function setTheme(page, theme) {
 }
 
 async function waitForPreview(page) {
-  await expect(page.locator(".preview-canvas__svg svg")).toBeVisible({ timeout: 15000 });
+  await expect(page.locator(".preview-canvas__svg svg, .preview-canvas__image").first()).toBeVisible({ timeout: 15000 });
 }
 
+async function setColorInput(page, selector, value) {
+  await page.locator(selector).evaluate((element, nextValue) => {
+    const descriptor = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value");
+
+    descriptor?.set?.call(element, nextValue);
+    element.dispatchEvent(new Event("input", { bubbles: true }));
+    element.dispatchEvent(new Event("change", { bubbles: true }));
+  }, value);
+}
+
+function panelToggle(page, label) {
+  return page.locator(".panel-block__toggle").filter({ hasText: label });
+}
+
+function panelBlock(page, label) {
+  return page.locator(".panel-block").filter({ has: panelToggle(page, label) }).first();
+}
+
+async function expandPanel(page, label) {
+  const toggle = panelToggle(page, label).first();
+  await expect(toggle).toBeVisible();
+
+  if ((await toggle.getAttribute("aria-expanded")) !== "true") {
+    await toggle.click();
+  }
+
+  return toggle;
+}
 async function openStudio(page, { locale = "en", theme = "dark" } = {}) {
   await page.goto(FRONTEND_URL, { waitUntil: "networkidle" });
   await setLocale(page, locale);
@@ -89,9 +122,81 @@ test("preview exposes reliability telemetry from the backend", async ({ page }) 
 
   const reliabilityPanel = page.locator(".reliability-panel");
   await expect(reliabilityPanel).toBeVisible();
-  await expect(reliabilityPanel).toContainText("Post-render scan confidence");
+  await expect(reliabilityPanel).toContainText("QR Code quality.");
   await expect(reliabilityPanel.locator(".reliability-score__value")).toContainText(/\d+%/);
   await expect(reliabilityPanel.locator(".reliability-simulation")).toHaveCount(4);
+});
+
+test("transparent mode stays on by default and artistic inputs re-render without stale preview flicker", async ({ page }) => {
+  await openStudio(page, { locale: "en", theme: "dark" });
+
+  await page.locator(".studio-tab").filter({ hasText: /^Shape$/i }).click();
+
+  const transparentToggle = page
+    .locator(".studio-section-card")
+    .filter({ hasText: /Transparent background/i })
+    .locator(".toggle");
+  await expect(transparentToggle).toHaveAttribute("data-active", "true");
+
+  await page.locator(".studio-tab").filter({ hasText: /^Presets$/i }).click();
+  await page.getByRole("button", { name: /Cyberpunk/i }).click();
+  await expect(page.locator(".preview-canvas--loading")).toBeVisible({ timeout: 5000 });
+  await waitForPreview(page);
+
+  await page.locator(".studio-tab").filter({ hasText: /^Camouflage$/i }).click();
+  const camouflageRange = page.locator("#qr-camouflage");
+  await expect(camouflageRange).toBeVisible();
+  await camouflageRange.focus();
+  await camouflageRange.press("ArrowRight");
+  await camouflageRange.press("ArrowRight");
+  await waitForPreview(page);
+  await expect(camouflageRange).toBeVisible();
+
+  const referenceUpload = page.locator(".studio-tabpanel input[type='file']").first();
+  await expect(referenceUpload).toBeAttached();
+  await referenceUpload.setInputFiles(VALID_UPLOAD_FIXTURE);
+  await page.getByRole("button", { name: /^Near invisible$/i }).click();
+  await waitForPreview(page);
+  await expect(page.locator(".upload-card").filter({ hasText: /Carrier image linked to the render\./i })).toBeVisible();
+  await expect(page.locator(".visual-tile[data-active='true']")).toContainText(/^Near invisible$/i);
+
+  await page.getByRole("button", { name: /^Frequency$/i }).click();
+  await waitForPreview(page);
+  await expect(page.locator(".visual-tile[data-active='true']")).toContainText(/^Frequency$/i);
+
+  await page.locator(".studio-tab").filter({ hasText: /^Logo$/i }).click();
+  const logoUpload = page.locator(".studio-tabpanel input[type='file']").first();
+  await expect(logoUpload).toBeAttached();
+  await logoUpload.setInputFiles(VALID_UPLOAD_FIXTURE);
+  await waitForPreview(page);
+  await expect(page.locator(".upload-card").filter({ hasText: /Logo ready for the protected center zone\./i })).toBeVisible();
+  await expect(page.locator("#qr-logo-scale")).toBeEnabled();
+});
+
+test("studio boots into the new step flow with frame controls active", async ({ page }) => {
+  await openStudio(page, { locale: "en", theme: "dark" });
+
+  await expect(page.locator(".studio-step")).toHaveCount(2);
+  await expect(page.locator(".content-type-tile[data-active='true']")).toContainText(/^Link$/i);
+  await expect(page.locator(".studio-tab")).toHaveCount(6);
+  await expect(page.locator(".studio-tab[data-active='true']")).toContainText(/^Frame$/i);
+  await expect(page.locator("#qr-size")).toBeVisible();
+  await expect(page.locator(".visual-tile-grid--frames .visual-tile")).toHaveCount(8);
+});
+
+test("runtime validation messages follow the selected locale", async ({ page }) => {
+  await openStudio(page, { locale: "pt-BR", theme: "dark" });
+
+  await expect(page.locator(".control-panel")).toContainText("Complete o conteudo");
+
+  await page.locator(".studio-tab").filter({ hasText: /^Shape$/i }).click();
+
+  await setColorInput(page, "#qr-color", "#111111");
+  await setColorInput(page, "#qr-background", "#111111");
+  await expect(page.locator(".error-banner")).toContainText(/O contraste entre primeiro plano e fundo está muito baixo/i, { timeout: 15000 });
+
+  await setLocale(page, "en");
+  await expect(page.locator(".error-banner")).toContainText(/Foreground and background contrast is too low/i, { timeout: 15000 });
 });
 
 test("light theme export button keeps a light overlay and exposes a PNG download", async ({ page }) => {

@@ -7,7 +7,7 @@ use crate::{
     core::encoding::encode_qr_matrix,
     error::AppError,
     models::{request::GenerateRequest, response::GenerateResponse},
-    render::{renderer_for, RenderOptions},
+    render::{build_artistic_render_config, renderer_for, RenderOptions},
     validation::{
         assess_render_reliability, recommended_safety_bias, validate_generate_request,
         ValidatedGenerateRequest,
@@ -22,17 +22,28 @@ impl QrEngine {
     pub fn generate(&self, request: GenerateRequest) -> Result<GenerateResponse, AppError> {
         let request = validate_generate_request(request)?;
         let matrix = encode_qr_matrix(&request.data)?;
+        let artistic = build_artistic_render_config(
+            request.preset,
+            request.camouflage,
+            request.perception_mode,
+            request.perception_strength,
+            request.reference_image.as_deref(),
+            request.logo_image.as_deref(),
+            request.logo_scale,
+            matrix.width(),
+        )?;
 
-        self.render_response(&matrix, request)
+        self.render_response(&matrix, request, artistic)
     }
 
     fn render_response(
         &self,
         matrix: &crate::core::matrix::QrMatrix,
         request: ValidatedGenerateRequest,
+        artistic: crate::render::ArtisticRenderConfig,
     ) -> Result<GenerateResponse, AppError> {
         let renderer = renderer_for(request.style);
-        let mut rendered = renderer.render(matrix, &render_options(&request, 0.0));
+        let mut rendered = renderer.render(matrix, &render_options(&request, 0.0, artistic.clone()));
         let mut validation = assess_render_reliability(
             matrix,
             &rendered.image,
@@ -43,7 +54,10 @@ impl QrEngine {
         let mut corrections_applied = Vec::new();
 
         if let Some(safety_bias) = recommended_safety_bias(&validation) {
-            let safer_render = renderer.render(matrix, &render_options(&request, safety_bias));
+            let safer_render = renderer.render(
+                matrix,
+                &render_options(&request, safety_bias, artistic.clone()),
+            );
             let safer_validation = assess_render_reliability(
                 matrix,
                 &safer_render.image,
@@ -62,19 +76,33 @@ impl QrEngine {
             }
         }
 
+        let decorated_output = request.frame_style != crate::render::QRFrameStyle::None
+            || request.finder_border_style != crate::render::QRFinderBorderStyle::Square
+            || request.finder_center_style != crate::render::QRFinderCenterStyle::Square
+            || request.gradient_enabled;
+        let png_base64 = encode_png(rendered.image.clone())?;
+        let svg = if decorated_output {
+            wrap_png_data_url_as_svg(request.size, &png_base64)
+        } else {
+            rendered.svg
+        };
+
         Ok(GenerateResponse {
-            svg: rendered.svg,
-            png_base64: encode_png(rendered.image)?,
+            svg,
+            png_base64,
             validation: validation.with_corrections(corrections_applied),
         })
     }
 }
 
-fn render_options(request: &ValidatedGenerateRequest, safety_bias: f32) -> RenderOptions {
+fn render_options(
+    request: &ValidatedGenerateRequest,
+    safety_bias: f32,
+    artistic: crate::render::ArtisticRenderConfig,
+) -> RenderOptions {
     RenderOptions {
         canvas_size: request.size,
         quiet_zone: QUIET_ZONE,
-        foreground_hex: request.foreground.to_hex(),
         background_hex: request.background.to_hex(),
         foreground_rgba: request.foreground.to_rgba(),
         background_rgba: if request.transparent_background {
@@ -83,7 +111,14 @@ fn render_options(request: &ValidatedGenerateRequest, safety_bias: f32) -> Rende
             request.background.to_rgba()
         },
         transparent_background: request.transparent_background,
+        frame_style: request.frame_style,
+        finder_border_style: request.finder_border_style,
+        finder_center_style: request.finder_center_style,
+        border_rgba: request.border_color.to_rgba(),
+        center_rgba: request.center_color.to_rgba(),
+        gradient_enabled: request.gradient_enabled,
         safety_bias,
+        artistic,
     }
 }
 
@@ -97,12 +132,20 @@ fn encode_png(image: RgbaImage) -> Result<String, AppError> {
     ))
 }
 
+fn wrap_png_data_url_as_svg(size: u32, png_data_url: &str) -> String {
+    format!(
+        r#"<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}" fill="none" role="img" aria-label="Generated artistic QR code"><image href="{png}" width="{size}" height="{size}" preserveAspectRatio="none" /></svg>"#,
+        png = png_data_url,
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use image::{DynamicImage, Rgba};
     use image::{imageops, load_from_memory, GrayImage};
     use rqrr::PreparedImage;
-    use crate::{models::request::GenerateRequest, render::RenderStyle};
+    use crate::{models::request::GenerateRequest, render::{ArtisticPreset, PerceptionMode, RenderStyle}};
 
     fn sample_request(style: RenderStyle) -> GenerateRequest {
         GenerateRequest {
@@ -112,10 +155,23 @@ mod tests {
             background: "#0D0D0D".to_string(),
             transparent_background: true,
             size: 256,
+            frame_style: crate::render::QRFrameStyle::None,
+            finder_border_style: crate::render::QRFinderBorderStyle::Square,
+            finder_center_style: crate::render::QRFinderCenterStyle::Square,
+            border_color: "#1F2F48".to_string(),
+            center_color: "#00FFAA".to_string(),
+            gradient_enabled: false,
+            preset: ArtisticPreset::Manual,
+            camouflage: 0.0,
+            perception_mode: PerceptionMode::Off,
+            perception_strength: 0.34,
+            reference_image: None,
+            logo_image: None,
+            logo_scale: 0.22,
         }
     }
 
-    fn decode_png_payload(png_base64: &str) -> String {
+    fn decode_png_payload(png_base64: &str) -> Option<String> {
         let encoded = png_base64
             .strip_prefix("data:image/png;base64,")
             .expect("png payload should be a data URL");
@@ -126,11 +182,48 @@ mod tests {
 
         for invert in [false, true] {
             if let Some(content) = decode_thresholded(image.clone(), invert) {
-                return content;
+                return Some(content);
             }
         }
 
-        panic!("qr should remain decodable")
+        None
+    }
+
+    fn png_data_url(image: RgbaImage) -> String {
+        let mut cursor = Cursor::new(Vec::new());
+        DynamicImage::ImageRgba8(image)
+            .write_to(&mut cursor, ImageFormat::Png)
+            .expect("test image should encode as png");
+
+        format!("data:image/png;base64,{}", BASE64.encode(cursor.into_inner()))
+    }
+
+    fn sample_reference_image() -> String {
+        let mut image = RgbaImage::new(96, 96);
+
+        for y in 0..image.height() {
+            for x in 0..image.width() {
+                let blend = ((x + y) as f32 / (image.width() + image.height()) as f32).clamp(0.0, 1.0);
+                let value = (255.0 * blend).round() as u8;
+                image.put_pixel(x, y, Rgba([value, value, value, 255]));
+            }
+        }
+
+        png_data_url(image)
+    }
+
+    fn sample_logo_image() -> String {
+        let mut image = RgbaImage::from_pixel(72, 72, Rgba([0, 0, 0, 0]));
+
+        for y in 14..58 {
+            for x in 14..58 {
+                if (24..48).contains(&x) || (24..48).contains(&y) {
+                    image.put_pixel(x, y, Rgba([255, 255, 255, 255]));
+                }
+            }
+        }
+
+        png_data_url(image)
     }
 
     fn decode_thresholded(mut image: GrayImage, invert: bool) -> Option<String> {
@@ -197,6 +290,25 @@ mod tests {
     }
 
     #[test]
+    fn backend_design_layers_return_wrapped_png_output() {
+        let mut request = sample_request(RenderStyle::Square);
+        request.size = 512;
+        request.transparent_background = false;
+        request.frame_style = crate::render::QRFrameStyle::Rounded;
+        request.finder_border_style = crate::render::QRFinderBorderStyle::Rounded;
+        request.finder_center_style = crate::render::QRFinderCenterStyle::Circle;
+        request.gradient_enabled = true;
+
+        let response = QrEngine
+            .generate(request)
+            .expect("decorated request should render successfully");
+
+        assert!(response.svg.contains("<image href=\"data:image/png;base64,"));
+        assert!(response.validation.score > 0.0);
+        assert!(response.validation.simulations.len() >= 4);
+    }
+
+    #[test]
     fn square_renderer_png_remains_decodable() {
         let mut request = sample_request(RenderStyle::Square);
         request.transparent_background = false;
@@ -205,7 +317,7 @@ mod tests {
             .generate(request)
             .expect("square style should render successfully");
 
-        assert_eq!(decode_png_payload(&response.png_base64), expected);
+        assert_eq!(decode_png_payload(&response.png_base64).as_deref(), Some(expected.as_str()));
     }
 
     #[test]
@@ -217,6 +329,62 @@ mod tests {
             .generate(request)
             .expect("fractal style should render successfully");
 
-        assert_eq!(decode_png_payload(&response.png_base64), expected);
+        assert_eq!(decode_png_payload(&response.png_base64).as_deref(), Some(expected.as_str()));
+    }
+
+    #[test]
+    fn phase_four_artistic_system_remains_decodable() {
+        let mut request = sample_request(RenderStyle::Square);
+        request.transparent_background = false;
+        request.preset = ArtisticPreset::Cyberpunk;
+        request.camouflage = 0.26;
+        request.reference_image = Some(sample_reference_image());
+        request.logo_image = Some(sample_logo_image());
+        request.logo_scale = 0.18;
+        let expected = request.data.clone();
+
+        let response = QrEngine
+            .generate(request)
+            .expect("phase four artistic request should render successfully");
+
+        assert!(response.svg.contains("Embedded logo"));
+        assert!(response.svg.contains("href=\"data:image/png;base64,"));
+        assert!(response.validation.score > 0.0);
+        assert_eq!(decode_png_payload(&response.png_base64).as_deref(), Some(expected.as_str()));
+    }
+
+    #[test]
+    fn phase_five_perception_modes_remain_decodable() {
+        for mode in [
+            PerceptionMode::NearInvisible,
+            PerceptionMode::Frequency,
+            PerceptionMode::Negative,
+            PerceptionMode::Encrypted,
+            PerceptionMode::MultiLayer,
+        ] {
+            let mut request = sample_request(RenderStyle::Square);
+            request.transparent_background = false;
+            request.size = 768;
+            request.preset = ArtisticPreset::Neon;
+            request.camouflage = 0.12;
+            request.perception_mode = mode;
+            request.perception_strength = 0.58;
+            request.reference_image = Some(sample_reference_image());
+            let response = QrEngine
+                .generate(request)
+                .expect("phase five artistic request should render successfully");
+
+            let renders_carrier_image = matches!(
+                mode,
+                PerceptionMode::Encrypted | PerceptionMode::MultiLayer
+            );
+            assert_eq!(
+                response.svg.contains("<image href=\"data:image/png;base64,"),
+                renders_carrier_image,
+                "mode {:?} should match carrier-image expectations",
+                mode,
+            );
+            assert!(response.validation.score > 0.0, "mode {:?} should retain a positive reliability score", mode);
+        }
     }
 }

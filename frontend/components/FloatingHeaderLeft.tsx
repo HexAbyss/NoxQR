@@ -12,9 +12,10 @@ import { motion, useTransform, type MotionValue } from "framer-motion";
 interface FloatingHeaderLeftProps {
   progress: MotionValue<number>;
   isInteractive: boolean;
+  label: string;
 }
 
-export function FloatingHeaderLeft({ progress, isInteractive }: Readonly<FloatingHeaderLeftProps>) {
+export function FloatingHeaderLeft({ progress, isInteractive, label }: Readonly<FloatingHeaderLeftProps>) {
   const opacity = useTransform(progress, [0.2, 0.7, 1], [0, 0.5, 1]);
   const x = useTransform(progress, [0, 1], [-14, 0]);
   const y = useTransform(progress, [0, 1], [-10, 0]);
@@ -28,7 +29,7 @@ export function FloatingHeaderLeft({ progress, isInteractive }: Readonly<Floatin
       <span className="floating-header__mark-shell" aria-hidden="true">
         <Image src="/nox-mark.svg" alt="" width={256} height={256} className="floating-header__mark-image" sizes="48px" />
       </span>
-      <a href="#page-top" className="floating-header__link" aria-label="Return to top" tabIndex={isInteractive ? 0 : -1} />
+      <a href="#page-top" className="floating-header__link" aria-label={label} tabIndex={isInteractive ? 0 : -1} />
     </motion.div>
   );
 }

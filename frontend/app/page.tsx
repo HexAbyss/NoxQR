@@ -9,7 +9,7 @@
 import { motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
 import { startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
-import { ControlsPanel, type ControlsPanelCopy } from "@/components/ControlsPanel";
+import { StudioControlsPanel, type ControlsPanelCopy } from "@/components/StudioControlsPanel";
 import { FloatingHeaderLeft } from "@/components/FloatingHeaderLeft";
 import { FloatingHeaderRight } from "@/components/FloatingHeaderRight";
 import { HeroHeader, type HeaderCopy } from "@/components/HeroHeader";
@@ -24,6 +24,7 @@ interface DemoCopy {
   controls: ControlsPanelCopy;
   preview: QRPreviewCopy;
   footer: FooterCopy;
+  studioAriaLabel: string;
 }
 
 const COPY: Record<Locale, DemoCopy> = {
@@ -31,9 +32,10 @@ const COPY: Record<Locale, DemoCopy> = {
     header: {
       badge: "AGPL-3.0",
       title: "NOX",
-      subtitle: "Visual Encoding Engine",
+      subtitle: "Estudio de QR Code",
       summary:
-        "Engine visual open source para QR artistico com controle de estilo e renderizacao confiavel em Rust.",
+        "Crie QR Codes personalizados com visual marcante e leitura confiavel.",
+      returnToTopLabel: "Voltar ao topo",
       localeLabel: "Idioma",
       themeLabel: "Tema",
       locales: {
@@ -47,42 +49,56 @@ const COPY: Record<Locale, DemoCopy> = {
     },
     controls: {
       eyebrow: "Controles",
-      title: "Modele o sinal.",
+      title: "Personalize seu QR.",
       summary:
-        "O frontend orquestra a experiencia. O render continua no backend em Rust para manter consistencia, extensibilidade e leitura confiavel.",
+        "Escolha o conteudo, ajuste as cores e monte o visual do seu QR Code.",
       fields: {
         dataLabel: "Dados do QR",
         dataPlaceholder: "https://example.com, payload de campanha ou qualquer texto legivel por scanner",
+        presetLabel: "Preset artistico",
+        presetHint: "Ativa direcoes visuais prontas com paleta, estilo e textura base sem romper a leitura.",
         styleLabel: "Estilo visual",
         foregroundLabel: "Cor principal",
         backgroundLabel: "Cor de fundo",
         transparentBackgroundLabel: "Background transparente",
         transparentBackgroundHint: "Mantem o QR sem preenchimento. Ao escolher uma cor, o fundo volta a ser solido.",
         transparentBackgroundValue: "Transparente",
+        perceptionModeLabel: "Camada perceptual",
+        perceptionModeHint: "Define como a imagem base influencia a percepcao do QR sem mexer no contrato estrutural do backend.",
+        perceptionStrengthLabel: "Presenca do sinal",
+        perceptionStrengthHint: "Valores altos priorizam leitura. Valores baixos deixam o QR mais disfarçado.",
+        camouflageLabel: "Camuflagem",
+        camouflageHint: "Ajusta o ruido residual aplicado aos modulos de dados apos a camada perceptual.",
+        referenceImageLabel: "Imagem base",
+        referenceImageHint: "PNG, JPEG ou WebP ate 2MB. A imagem serve como carrier ou guia tonal nos modos Phase 5.",
+        logoImageLabel: "Logo central",
+        logoImageHint: "PNG, JPEG ou WebP ate 2MB. O backend reserva uma zona segura antes de embutir o logo.",
+        logoScaleLabel: "Escala do logo",
+        logoScaleHint: "Refina a area protegida no centro para equilibrar marca e leitura.",
         sizeLabel: "Tamanho do canvas",
-        livePreviewLabel: "Live Preview",
+        livePreviewLabel: "Previa ao vivo",
         livePreviewHint:
           "Quando ativo, a pagina aplica debounce para manter a interacao fluida sem enfileirar renders desnecessarios.",
       },
       styles: {
         square: {
-          label: "Square",
+          label: "Quadrado",
           note: "Geometria direta para interfaces com contraste forte.",
         },
         dots: {
-          label: "Dots",
+          label: "Pontos",
           note: "Textura suave para identidade mais editorial.",
         },
         lines: {
-          label: "Lines",
-          note: "Direcao modular com leitura preservada em cada celula.",
+          label: "Linhas",
+          note: "Linhas continuas, sem tracos soltos, para um visual mais limpo.",
         },
         triangles: {
-          label: "Triangles",
+          label: "Triangulos",
           note: "Arestas angulares com rotacao controlada por modulo.",
         },
         hexagons: {
-          label: "Hexagons",
+          label: "Hexagonos",
           note: "Ritmo colmeia para composicoes mais compactas.",
         },
         blobs: {
@@ -90,7 +106,7 @@ const COPY: Record<Locale, DemoCopy> = {
           note: "Massa organica com contorno mais fluido e suave.",
         },
         glyphs: {
-          label: "Glyphs",
+          label: "Glifos",
           note: "Cruzamentos simbolicos para uma leitura mais grafica.",
         },
         fractal: {
@@ -98,46 +114,121 @@ const COPY: Record<Locale, DemoCopy> = {
           note: "Subdivisoes internas que ecoam a propria matriz.",
         },
       },
+      presets: {
+        manual: {
+          label: "Manual",
+          note: "Mantem o controle livre para montar a direcao visual do zero.",
+        },
+        neon: {
+          label: "Neon",
+          note: "Glow acido com ruido leve para interfaces noturnas e motion pieces.",
+        },
+        ink: {
+          label: "Ink",
+          note: "Contraste editorial com acabamento mais grafico e contido.",
+        },
+        wireframe: {
+          label: "Wireframe",
+          note: "Geometria fria com leitura tecnica e frequencia visivel.",
+        },
+        cyberpunk: {
+          label: "Cyberpunk",
+          note: "Magenta eletrico com camuflagem mais agressiva e atmosfera sintetica.",
+        },
+        minimal: {
+          label: "Minimal",
+          note: "Reducao maxima do ruido com fundo claro e estrutura limpa.",
+        },
+        organic: {
+          label: "Organico",
+          note: "Blocos mais vivos guiados por textura e composicao natural.",
+        },
+      },
+      perceptionModes: {
+        off: {
+          label: "Classico",
+          note: "Mantem apenas a direcao artistica tradicional do QR, sem camada perceptual.",
+        },
+        near_invisible: {
+          label: "Quase invisivel",
+          note: "Usa a imagem base como guia tonal para esconder o sinal com o menor ruido possivel.",
+        },
+        frequency: {
+          label: "Por frequencia",
+          note: "Distribui variacoes periodicas nos modulos sem depender de um carrier total.",
+        },
+        negative: {
+          label: "Negativo",
+          note: "Desloca a tonalidade dos modulos para criar uma leitura invertida mais grafica.",
+        },
+        encrypted: {
+          label: "Encriptado",
+          note: "Mistura a imagem base com modulos embaralhados para um visual mais cifrado.",
+        },
+        multi_layer: {
+          label: "Multi-camada",
+          note: "Empilha contrastes e acentos para um QR com profundidade visual extra.",
+        },
+      },
       buttons: {
         generate: "Gerar",
         generating: "Gerando...",
+        upload: "Enviar imagem",
+        replace: "Trocar imagem",
+        clear: "Limpar",
       },
       helpers: {
         sizeHint: "Faixa entre 256px e 1024px para testes de tela, material grafico e prototipos.",
-        autoHint: "Live Preview ligado. Alteracoes validas disparam render com atraso curto.",
-        manualHint: "Live Preview desligado. Use o botao para registrar checkpoints visuais.",
+        autoHint: "Previa ao vivo ligada. Alteracoes validas disparam render com atraso curto.",
+        manualHint: "Previa ao vivo desligada. Use o botao para registrar checkpoints visuais.",
+        referenceReady: "Imagem base conectada ao QR.",
+        logoReady: "Logo pronto para embutir no centro.",
       },
     },
     preview: {
-      eyebrow: "Preview",
-      title: "Saida em SVG com leitura preservada.",
+      eyebrow: "Prévia",
+      title: "Previa do QR Code.",
       summary:
-        "O painel recebe o SVG do backend e aplica apenas uma sanitizacao basica antes de injetar o markup, mantendo a demo segura sem esconder o contrato do engine.",
-      loadingTitle: "Renderizando no engine em Rust",
-      loadingBody: "Processando payload, estilo e paleta para devolver um SVG pronto para demonstracao.",
+        "Veja o resultado final antes de exportar.",
+      loadingTitle: "Gerando sua previa",
+      loadingBody: "Aplicando conteudo, cores e estilo ao seu QR Code.",
       errorTitle: "Falha ao gerar o QR",
       emptyTitle: "Pronto para o primeiro render.",
-      emptyBody: "Defina o payload e ajuste o visual para materializar a codificacao perceptual.",
-      successCaption: "SVG injetado com animacao suave para enfatizar a atualizacao do sistema visual.",
+      emptyBody: "Escolha o conteudo e personalize o visual para ver a previa.",
+      successCaption: "",
       meta: {
         style: "Estilo",
+        preset: "Preset",
         canvas: "Canvas",
-        payload: "Payload",
+        payload: "Conteudo",
       },
       status: {
-        renderer: "Render ownership: Rust backend",
+        renderer: "Render do backend em Rust",
         sanitization: "SVG sanitizado antes do dangerouslySetInnerHTML",
-        palette: "Paleta ativa",
+        preset: "Preset ativo",
+        perception: "Camada perceptual",
+        camouflage: "Camuflagem",
+        reference: "Imagem base conectada",
+        logo: "Logo embutido",
+        palette: "Cores ativas",
         transparent: "Transparente",
+      },
+      perceptionModes: {
+        off: "Classico",
+        near_invisible: "Quase invisivel",
+        frequency: "Por frequencia",
+        negative: "Negativo",
+        encrypted: "Encriptado",
+        multi_layer: "Multi-camada",
       },
       actions: {
         export: "Exportar PNG",
       },
       reliability: {
-        eyebrow: "Reliability engine",
-        title: "Confiabilidade apos o render.",
+        eyebrow: "Leitura",
+        title: "Qualidade do QR Code.",
         summary:
-          "Cada saida passa por score de contraste, distorcao, densidade, zona de silencio e simulacoes hostis antes de chegar ao preview.",
+          "Confira o nivel de leitura do QR em diferentes situacoes antes de exportar.",
         score: "Score",
         risk: "Risco",
         autoCorrection: "Auto-correcao",
@@ -149,7 +240,7 @@ const COPY: Record<Locale, DemoCopy> = {
           contrast: "Contraste",
           distortion: "Estabilidade",
           density: "Densidade",
-          quietZone: "Quiet zone",
+          quietZone: "Zona de silencio",
           simulations: "Simulacoes",
         },
         risks: {
@@ -168,7 +259,7 @@ const COPY: Record<Locale, DemoCopy> = {
     footer: {
       label: "NOX",
       description:
-        "Engine visual open source para codificacao QR artistica com interface Next.js e renderizacao confiavel em Rust.",
+        "Crie QR Codes personalizados com estilo, logo e exportacao rapida.",
       linksAriaLabel: "Links do projeto",
       links: [
         { href: "#studio", label: "Studio" },
@@ -177,14 +268,16 @@ const COPY: Record<Locale, DemoCopy> = {
       ],
       note: "© 2026 NOX. Codigo aberto sob AGPL-3.0-only.",
     },
+    studioAriaLabel: "Estudio de demonstracao do NOX",
   },
   en: {
     header: {
       badge: "AGPL-3.0",
       title: "NOX",
-      subtitle: "Visual Encoding Engine",
+      subtitle: "QR Code Studio",
       summary:
-        "Open-source visual QR engine with precise art direction and dependable Rust rendering.",
+        "Create custom QR Codes with bold styling and dependable readability.",
+      returnToTopLabel: "Return to top",
       localeLabel: "Language",
       themeLabel: "Theme",
       locales: {
@@ -198,18 +291,32 @@ const COPY: Record<Locale, DemoCopy> = {
     },
     controls: {
       eyebrow: "Controls",
-      title: "Shape the signal.",
+      title: "Customize your QR.",
       summary:
-        "The frontend only orchestrates the demo surface. Rendering stays in Rust so the visual contract can scale without leaking engine rules into the UI layer.",
+        "Choose the content, adjust the colors, and build the look of your QR Code.",
       fields: {
         dataLabel: "QR data",
         dataPlaceholder: "https://example.com, campaign payload, or any scanner-readable text",
+        presetLabel: "Art preset",
+        presetHint: "Applies a ready-made direction for palette, style, and base texture without breaking scanability.",
         styleLabel: "Visual style",
         foregroundLabel: "Foreground",
         backgroundLabel: "Background",
         transparentBackgroundLabel: "Transparent background",
         transparentBackgroundHint: "Keeps the QR without a fill. Picking a color switches the background back to solid.",
         transparentBackgroundValue: "Transparent",
+        perceptionModeLabel: "Perception layer",
+        perceptionModeHint: "Chooses how the carrier image influences the QR without changing the backend structural rules.",
+        perceptionStrengthLabel: "Signal presence",
+        perceptionStrengthHint: "Higher values favor readability. Lower values push the QR further into disguise.",
+        camouflageLabel: "Camouflage",
+        camouflageHint: "Controls the residual noise added after the perception layer settles the signal.",
+        referenceImageLabel: "Carrier image",
+        referenceImageHint: "PNG, JPEG, or WebP up to 2MB. The image becomes a carrier or tonal guide for Phase 5 modes.",
+        logoImageLabel: "Center logo",
+        logoImageHint: "PNG, JPEG, or WebP up to 2MB. The backend clears a safe zone before embedding the logo.",
+        logoScaleLabel: "Logo scale",
+        logoScaleHint: "Fine-tunes the protected center area reserved for the brand mark.",
         sizeLabel: "Canvas size",
         livePreviewLabel: "Live Preview",
         livePreviewHint:
@@ -226,7 +333,7 @@ const COPY: Record<Locale, DemoCopy> = {
         },
         lines: {
           label: "Lines",
-          note: "Modular direction with readability preserved per cell.",
+          note: "Continuous line strokes without loose dashes for a cleaner finish.",
         },
         triangles: {
           label: "Triangles",
@@ -249,46 +356,121 @@ const COPY: Record<Locale, DemoCopy> = {
           note: "Nested subdivisions that echo the matrix itself.",
         },
       },
+      presets: {
+        manual: {
+          label: "Manual",
+          note: "Keeps the controls open so you can build the visual direction from scratch.",
+        },
+        neon: {
+          label: "Neon",
+          note: "Acid glow and light texture for night-mode interfaces and motion drops.",
+        },
+        ink: {
+          label: "Ink",
+          note: "Editorial contrast with a sharper and more restrained finish.",
+        },
+        wireframe: {
+          label: "Wireframe",
+          note: "Cold geometry with technical rhythm and visible structural frequency.",
+        },
+        cyberpunk: {
+          label: "Cyberpunk",
+          note: "Electric magenta with stronger camouflage and synthetic atmosphere.",
+        },
+        minimal: {
+          label: "Minimal",
+          note: "Reduces noise to the floor with a light field and strict structure.",
+        },
+        organic: {
+          label: "Organic",
+          note: "Living shapes guided by image texture and softer composition.",
+        },
+      },
+      perceptionModes: {
+        off: {
+          label: "Classic",
+          note: "Keeps the legacy artistic QR treatment without an added perception layer.",
+        },
+        near_invisible: {
+          label: "Near invisible",
+          note: "Uses the carrier image as a tonal guide to hide the signal with minimal extra noise.",
+        },
+        frequency: {
+          label: "Frequency",
+          note: "Distributes periodic variation through the modules without relying on a full carrier backdrop.",
+        },
+        negative: {
+          label: "Negative",
+          note: "Shifts module tonality toward a more inverted graphic reading.",
+        },
+        encrypted: {
+          label: "Encrypted",
+          note: "Blends carrier input with scrambled module accents for a cipher-like finish.",
+        },
+        multi_layer: {
+          label: "Multi-layer",
+          note: "Stacks contrast bands and accents for deeper visual layering.",
+        },
+      },
       buttons: {
         generate: "Generate",
         generating: "Generating...",
+        upload: "Upload image",
+        replace: "Replace image",
+        clear: "Clear",
       },
       helpers: {
         sizeHint: "Range from 256px to 1024px for screen tests, print experiments, and product prototypes.",
         autoHint: "Live Preview is enabled. Valid changes trigger a short delayed render.",
         manualHint: "Live Preview is disabled. Use the button when you want explicit visual checkpoints.",
+        referenceReady: "Carrier image linked to the render.",
+        logoReady: "Logo ready for the protected center zone.",
       },
     },
     preview: {
       eyebrow: "Preview",
-      title: "SVG output with machine readability intact.",
+      title: "QR Code preview.",
       summary:
-        "The panel receives SVG from the backend and applies only light sanitization before injecting the markup so the demo stays safe without obscuring the engine contract.",
-      loadingTitle: "Rendering in the Rust engine",
-      loadingBody: "Processing payload, style, and palette to return an SVG ready for demonstration.",
+        "Check the final result before exporting.",
+      loadingTitle: "Generating your preview",
+      loadingBody: "Applying content, colors, and style to your QR Code.",
       errorTitle: "QR generation failed",
       emptyTitle: "Ready for the first render.",
-      emptyBody: "Define the payload and tune the visual language to materialize the perceptual encoding.",
-      successCaption: "SVG is injected with a soft transition to emphasize each update of the visual system.",
+      emptyBody: "Choose the content and personalize the look to see your preview.",
+      successCaption: "",
       meta: {
         style: "Style",
+        preset: "Preset",
         canvas: "Canvas",
         payload: "Payload",
       },
       status: {
         renderer: "Render ownership: Rust backend",
         sanitization: "SVG sanitized before dangerouslySetInnerHTML",
+        preset: "Active preset",
+        perception: "Perception",
+        camouflage: "Camouflage",
+        reference: "Carrier image linked",
+        logo: "Logo embedded",
         palette: "Active palette",
         transparent: "Transparent",
+      },
+      perceptionModes: {
+        off: "Classic",
+        near_invisible: "Near invisible",
+        frequency: "Frequency",
+        negative: "Negative",
+        encrypted: "Encrypted",
+        multi_layer: "Multi-layer",
       },
       actions: {
         export: "Export PNG",
       },
       reliability: {
-        eyebrow: "Reliability engine",
-        title: "Post-render scan confidence.",
+        eyebrow: "Readability",
+        title: "QR Code quality.",
         summary:
-          "Every output is scored for contrast, distortion, density, quiet zone preservation, and hostile scan simulations before it reaches the preview.",
+          "Review how easy the QR is to scan in different situations before exporting.",
         score: "Score",
         risk: "Risk",
         autoCorrection: "Auto-correction",
@@ -319,7 +501,7 @@ const COPY: Record<Locale, DemoCopy> = {
     footer: {
       label: "NOX",
       description:
-        "Open-source visual encoding engine for artistic QR direction with a Next.js interface and a dependable Rust renderer.",
+        "Create custom QR Codes with style, logo, and quick export.",
       linksAriaLabel: "Project links",
       links: [
         { href: "#studio", label: "Studio" },
@@ -328,6 +510,7 @@ const COPY: Record<Locale, DemoCopy> = {
       ],
       note: "© 2026 NOX. Open source under AGPL-3.0-only.",
     },
+    studioAriaLabel: "NOX demonstration studio",
   },
 };
 
@@ -336,10 +519,23 @@ export default function HomePage() {
   const [heroHeight, setHeroHeight] = useState(0);
   const [floatingInteractive, setFloatingInteractive] = useState(false);
   const data = useQRStore((state) => state.data);
+  const preset = useQRStore((state) => state.preset);
   const style = useQRStore((state) => state.style);
+  const camouflage = useQRStore((state) => state.camouflage);
   const color = useQRStore((state) => state.color);
   const background = useQRStore((state) => state.background);
   const transparentBackground = useQRStore((state) => state.transparent_background);
+  const referenceImage = useQRStore((state) => state.reference_image);
+  const logoImage = useQRStore((state) => state.logo_image);
+  const logoScale = useQRStore((state) => state.logo_scale);
+  const perceptionMode = useQRStore((state) => state.perception_mode);
+  const perceptionStrength = useQRStore((state) => state.perception_strength);
+  const frameStyle = useQRStore((state) => state.frameStyle);
+  const finderBorderStyle = useQRStore((state) => state.finderBorderStyle);
+  const finderCenterStyle = useQRStore((state) => state.finderCenterStyle);
+  const borderColor = useQRStore((state) => state.borderColor);
+  const centerColor = useQRStore((state) => state.centerColor);
+  const gradientEnabled = useQRStore((state) => state.gradientEnabled);
   const size = useQRStore((state) => state.size);
   const svg = useQRStore((state) => state.svg);
   const livePreview = useQRStore((state) => state.livePreview);
@@ -351,6 +547,7 @@ export default function HomePage() {
 
   const deferredData = useDeferredValue(data);
   const copy = useMemo(() => COPY[locale], [locale]);
+  const presetLabel = copy.controls.presets[preset].label;
   const styleLabel = copy.controls.styles[style].label;
   const { scrollY } = useScroll();
   const measuredHeroHeight = heroHeight || 192;
@@ -416,7 +613,29 @@ export default function HomePage() {
     return () => {
       window.clearTimeout(timer);
     };
-  }, [background, color, deferredData, generate, livePreview, size, style, transparentBackground]);
+  }, [
+    background,
+    borderColor,
+    camouflage,
+    centerColor,
+    color,
+    deferredData,
+    finderBorderStyle,
+    finderCenterStyle,
+    frameStyle,
+    generate,
+    gradientEnabled,
+    livePreview,
+    logoImage,
+    logoScale,
+    perceptionMode,
+    perceptionStrength,
+    preset,
+    referenceImage,
+    size,
+    style,
+    transparentBackground,
+  ]);
 
   useEffect(() => {
     if (svg || !data.trim()) {
@@ -428,7 +647,7 @@ export default function HomePage() {
 
   return (
     <>
-      <FloatingHeaderLeft progress={headerProgress} isInteractive={floatingInteractive} />
+      <FloatingHeaderLeft progress={headerProgress} isInteractive={floatingInteractive} label={copy.header.returnToTopLabel} />
 
       <FloatingHeaderRight
         copy={copy.header}
@@ -472,9 +691,9 @@ export default function HomePage() {
         </motion.div>
 
         <motion.main className="demo-main" style={{ paddingTop: mainPaddingTop }}>
-          <section id="studio" className="demo-grid" aria-label="NOX demonstration studio">
-            <ControlsPanel copy={copy.controls} />
-            <QRPreview copy={copy.preview} styleLabel={styleLabel} />
+          <section id="studio" className="demo-grid" aria-label={copy.studioAriaLabel}>
+            <StudioControlsPanel copy={copy.controls} />
+            <QRPreview copy={copy.preview} styleLabel={styleLabel} presetLabel={presetLabel} />
           </section>
         </motion.main>
       </div>

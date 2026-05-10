@@ -18,6 +18,7 @@ export interface HeaderCopy extends HeaderControlsCopy {
   title: string;
   subtitle: string;
   summary: string;
+  returnToTopLabel: string;
 }
 
 interface HeroHeaderProps {

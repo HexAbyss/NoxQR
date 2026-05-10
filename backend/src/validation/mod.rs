@@ -2,7 +2,14 @@ mod reliability;
 
 use image::Rgba;
 
-use crate::{error::AppError, models::request::GenerateRequest, render::RenderStyle};
+use crate::{
+    error::AppError,
+    models::request::GenerateRequest,
+    render::{
+        validate_image_payload, ArtisticPreset, PerceptionMode, QRFinderBorderStyle,
+        QRFinderCenterStyle, QRFrameStyle, RenderStyle,
+    },
+};
 
 pub use reliability::{
     assess_render_reliability, recommended_safety_bias, ValidationResult,
@@ -19,6 +26,19 @@ pub struct ValidatedGenerateRequest {
     pub transparent_background: bool,
     pub foreground: ParsedColor,
     pub background: ParsedColor,
+    pub frame_style: QRFrameStyle,
+    pub finder_border_style: QRFinderBorderStyle,
+    pub finder_center_style: QRFinderCenterStyle,
+    pub border_color: ParsedColor,
+    pub center_color: ParsedColor,
+    pub gradient_enabled: bool,
+    pub preset: ArtisticPreset,
+    pub camouflage: f32,
+    pub perception_mode: PerceptionMode,
+    pub perception_strength: f32,
+    pub reference_image: Option<String>,
+    pub logo_image: Option<String>,
+    pub logo_scale: f32,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -84,8 +104,42 @@ pub fn validate_generate_request(
         )));
     }
 
+    if !(0.0..=1.0).contains(&request.camouflage) {
+        return Err(AppError::bad_request(
+            "Camouflage strength must stay between 0.0 and 1.0.",
+        ));
+    }
+
+    if !(0.0..=1.0).contains(&request.perception_strength) {
+        return Err(AppError::bad_request(
+            "Perception strength must stay between 0.0 and 1.0.",
+        ));
+    }
+
+    if request.perception_mode != PerceptionMode::Off && request.reference_image.is_none() {
+        return Err(AppError::bad_request(
+            "Perception modes require a carrier image upload.",
+        ));
+    }
+
+    if request.logo_image.is_some() && !(0.14..=0.30).contains(&request.logo_scale) {
+        return Err(AppError::bad_request(
+            "Logo scale must stay between 0.14 and 0.30 when a logo is embedded.",
+        ));
+    }
+
     let foreground = ParsedColor::parse(&request.color)?;
     let background = ParsedColor::parse(&request.background)?;
+    let border_color = ParsedColor::parse(&request.border_color)?;
+    let center_color = ParsedColor::parse(&request.center_color)?;
+
+    if let Some(reference_image) = request.reference_image.as_deref() {
+        validate_image_payload(reference_image, "reference_image")?;
+    }
+
+    if let Some(logo_image) = request.logo_image.as_deref() {
+        validate_image_payload(logo_image, "logo_image")?;
+    }
 
     if !request.transparent_background {
         let contrast = contrast_ratio(foreground, background);
@@ -104,6 +158,19 @@ pub fn validate_generate_request(
         transparent_background: request.transparent_background,
         foreground,
         background,
+        frame_style: request.frame_style,
+        finder_border_style: request.finder_border_style,
+        finder_center_style: request.finder_center_style,
+        border_color,
+        center_color,
+        gradient_enabled: request.gradient_enabled,
+        preset: request.preset,
+        camouflage: request.camouflage,
+        perception_mode: request.perception_mode,
+        perception_strength: request.perception_strength,
+        reference_image: request.reference_image,
+        logo_image: request.logo_image,
+        logo_scale: request.logo_scale,
     })
 }
 

@@ -3,6 +3,8 @@ use std::f32::consts::PI;
 use image::{Rgba, RgbaImage};
 use serde::{Deserialize, Serialize};
 
+use super::apply_design_layers;
+use super::artistic::{svg_color, ArtisticRenderConfig};
 use crate::core::matrix::{Module, ModuleRole, QrMatrix};
 
 #[derive(Debug, Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq)]
@@ -19,16 +21,64 @@ pub enum RenderStyle {
     Fractal,
 }
 
+#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum QRFrameStyle {
+    #[default]
+    None,
+    Rounded,
+    Card,
+    Circle,
+    Phone,
+    Hanger,
+    Ticket,
+    Ribbon,
+}
+
+#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum QRFinderBorderStyle {
+    #[default]
+    Square,
+    Rounded,
+    Circle,
+    Leaf,
+    Bubble,
+    Focus,
+    Cut,
+    SoftSquare,
+}
+
+#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum QRFinderCenterStyle {
+    #[default]
+    Square,
+    Rounded,
+    Circle,
+    Leaf,
+    Burst,
+    Star,
+    Diamond,
+    Cross,
+}
+
 #[derive(Debug, Clone)]
 pub struct RenderOptions {
     pub canvas_size: u32,
     pub quiet_zone: usize,
-    pub foreground_hex: String,
     pub background_hex: String,
     pub foreground_rgba: Rgba<u8>,
     pub background_rgba: Rgba<u8>,
     pub transparent_background: bool,
+    pub frame_style: QRFrameStyle,
+    pub finder_border_style: QRFinderBorderStyle,
+    pub finder_center_style: QRFinderCenterStyle,
+    pub border_rgba: Rgba<u8>,
+    pub center_rgba: Rgba<u8>,
+    pub gradient_enabled: bool,
     pub safety_bias: f32,
+    pub artistic: ArtisticRenderConfig,
 }
 
 #[derive(Debug)]
@@ -305,6 +355,20 @@ fn render_matrix<R: Renderer + ?Sized>(renderer: &R, matrix: &QrMatrix, options:
     }
 
     let mut image = RgbaImage::from_pixel(options.canvas_size, options.canvas_size, options.background_rgba);
+    svg.push_str(&options.artistic.render_svg_background_layer(
+        matrix,
+        options.quiet_zone,
+        options.transparent_background,
+    ));
+    options
+        .artistic
+        .paint_raster_background_layer(
+            &mut image,
+            matrix,
+            options.quiet_zone,
+            options.canvas_size,
+            options.transparent_background,
+        );
 
     for y in 0..matrix.width() {
         for x in 0..matrix.width() {
@@ -328,8 +392,36 @@ fn render_matrix<R: Renderer + ?Sized>(renderer: &R, matrix: &QrMatrix, options:
                 transform: ModuleTransform::default(),
             };
 
+            if options
+                .artistic
+                .should_skip_module(module.role, x, y, matrix.width())
+            {
+                continue;
+            }
+
             if renderer.prefers_strict_rendering(module.role) {
-                telemetry.record(module.role, ModuleTransform::default(), importance);
+                let artistic_module = options.artistic.module_adjustment(
+                    base_svg_geometry,
+                    ModuleTransform::default(),
+                    adjusted_importance(importance, options.safety_bias),
+                    options.foreground_rgba,
+                    options.background_rgba,
+                    options.safety_bias,
+                    matrix.width(),
+                );
+                if artistic_module.skip {
+                    continue;
+                }
+                telemetry.record(
+                    module.role,
+                    artistic_module.transform,
+                    artistic_module.importance,
+                );
+                let strict_svg_geometry = SvgModuleGeometry {
+                    importance: artistic_module.importance,
+                    transform: artistic_module.transform,
+                    ..base_svg_geometry
+                };
                 let strict_geometry = raster_geometry(
                     x,
                     y,
@@ -338,11 +430,11 @@ fn render_matrix<R: Renderer + ?Sized>(renderer: &R, matrix: &QrMatrix, options:
                     total_modules,
                     options.canvas_size,
                     module.role,
-                    importance,
-                    ModuleTransform::default(),
+                    artistic_module.importance,
+                    artistic_module.transform,
                 );
-                svg.push_str(&strict_renderer.render_svg_module(base_svg_geometry, &options.foreground_hex));
-                strict_renderer.rasterize_module(&mut image, strict_geometry, options.foreground_rgba);
+                svg.push_str(&strict_renderer.render_svg_module(strict_svg_geometry, &svg_color(artistic_module.color)));
+                strict_renderer.rasterize_module(&mut image, strict_geometry, artistic_module.color);
                 continue;
             }
 
@@ -351,10 +443,26 @@ fn render_matrix<R: Renderer + ?Sized>(renderer: &R, matrix: &QrMatrix, options:
                 renderer.module_transform(base_svg_geometry, matrix.width()),
                 options.safety_bias,
             );
-            telemetry.record(module.role, transform, effective_importance);
-            let svg_geometry = SvgModuleGeometry {
-                importance: effective_importance,
+            let artistic_module = options.artistic.module_adjustment(
+                base_svg_geometry,
                 transform,
+                effective_importance,
+                options.foreground_rgba,
+                options.background_rgba,
+                options.safety_bias,
+                matrix.width(),
+            );
+            if artistic_module.skip {
+                continue;
+            }
+            telemetry.record(
+                module.role,
+                artistic_module.transform,
+                artistic_module.importance,
+            );
+            let svg_geometry = SvgModuleGeometry {
+                importance: artistic_module.importance,
+                transform: artistic_module.transform,
                 ..base_svg_geometry
             };
             let raster_geometry = raster_geometry(
@@ -365,16 +473,23 @@ fn render_matrix<R: Renderer + ?Sized>(renderer: &R, matrix: &QrMatrix, options:
                 total_modules,
                 options.canvas_size,
                 module.role,
-                importance,
-                transform,
+                artistic_module.importance,
+                artistic_module.transform,
             );
 
-            svg.push_str(&renderer.render_svg_module(svg_geometry, &options.foreground_hex));
-            renderer.rasterize_module(&mut image, raster_geometry, options.foreground_rgba);
+            svg.push_str(&renderer.render_svg_module(svg_geometry, &svg_color(artistic_module.color)));
+            renderer.rasterize_module(&mut image, raster_geometry, artistic_module.color);
         }
     }
 
+    svg.push_str(&options.artistic.render_svg_logo(matrix.width(), options.quiet_zone));
+    options
+        .artistic
+        .paint_raster_logo(&mut image, matrix.width(), options.quiet_zone, options.canvas_size);
+
     svg.push_str("</svg>");
+
+    let image = apply_design_layers(&image, total_modules, options);
 
     RenderOutput {
         svg,

@@ -47,6 +47,7 @@ What it protects:
 - store and component contract stability
 - UI exposure of renderer styles
 - reliability telemetry mapping in the preview layer
+- runtime localization plumbing for translated validation and error states
 
 ### 3. Full-Stack Regression
 
@@ -76,6 +77,12 @@ What it protects:
 - `POST /generate`
 - SVG, PNG, and validation contract stability across all supported styles
 - reliability telemetry visibility in the preview
+- transparent-background default on first load
+- stale-preview loading state during preset changes
+- step-based studio boot state and active shape controls
+- artistic uploads for reference image and center logo
+- perception-mode changes after carrier-image upload
+- locale-aware runtime validation messaging in PT-BR and EN
 - export button behavior in light and dark themes
 - mobile containment and overflow regressions
 
